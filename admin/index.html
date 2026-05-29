@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - 我的博客</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     LOGIN PAGE
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>管理后台</h1>
+      <p>请输入管理员密码登录</p>
+    </div>
+    <div id="login-alert" style="display:none;"></div>
+    <div class="form-group">
+      <label for="login-password">密码</label>
+      <input type="password" id="login-password" placeholder="输入密码" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:1rem;justify-content:center;" id="login-btn">
+      登录
+    </button>
+    <p style="text-align:center;margin-top:1rem;font-size:.78rem;color:#6b7280;">
+      默认密码：admin123
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     ADMIN SHELL
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="admin-page" style="display:none;">
+
+  <!-- Sidebar -->
+  <nav class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-logo">
+      <h1>📝 博客管理</h1>
+      <p id="sidebar-site-name">我的博客</p>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" data-panel="articles">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        文章管理
+      </div>
+      <div class="nav-item" data-panel="add-article">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        添加文章
+      </div>
+      <div class="nav-item" data-panel="import">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+        导入文章
+      </div>
+      <div class="nav-item" data-panel="settings">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        网站设置
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logout-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        退出登录
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="admin-main">
+    <!-- Top bar -->
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:.75rem;">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="topbar-title" id="topbar-title">文章管理</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem;">
+        <a href="../index.html" target="_blank" style="font-size:.8rem;color:var(--text-muted);">访问前台 →</a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ── Panel: Articles ─────────────────────────────────────────────── -->
+      <div class="panel active" id="panel-articles">
+        <!-- Stats -->
+        <div class="stats-row" id="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            </div>
+            <div>
+              <div class="stat-value" id="stat-total">0</div>
+              <div class="stat-label">文章总数</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#dcfce7;color:#16a34a;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </div>
+            <div>
+              <div class="stat-value" id="stat-cats">0</div>
+              <div class="stat-label">分类数量</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>所有文章</h2>
+            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+              <div class="table-search">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" id="table-search-input" placeholder="搜索文章…">
+              </div>
+              <button class="btn btn-primary btn-sm" id="refresh-articles-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                刷新
+              </button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="articles-table">
+              <thead>
+                <tr>
+                  <th>标题</th>
+                  <th>分类</th>
+                  <th>标签</th>
+                  <th>创建时间</th>
+                  <th>AFS配置</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="articles-tbody">
+                <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">加载中…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel: Add Article ──────────────────────────────────────────── -->
+      <div class="panel" id="panel-add-article">
+        <div class="card">
+          <div class="card-header">
+            <h2 id="article-form-title">添加文章</h2>
+            <button class="btn btn-outline btn-sm" id="cancel-edit-btn" style="display:none;">取消编辑</button>
+          </div>
+          <div class="card-body">
+            <div id="article-form-alert" style="display:none;"></div>
+            <form id="article-form">
+              <input type="hidden" id="edit-article-id">
+              <div class="form-grid">
+
+                <div class="form-group full">
+                  <label for="f-title">标题 <span style="color:red">*</span></label>
+                  <input type="text" id="f-title" placeholder="输入文章标题" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="f-category">分类</label>
+                  <input type="text" id="f-category" placeholder="如：科技、健康、编程" list="category-datalist">
+                  <datalist id="category-datalist"></datalist>
+                </div>
+
+                <div class="form-group">
+                  <label for="f-tags">标签 <span class="hint">（逗号分隔）</span></label>
+                  <input type="text" id="f-tags" placeholder="标签1, 标签2, 标签3">
+                </div>
+
+                <div class="form-group">
+                  <label for="f-cover">封面图 URL</label>
+                  <input type="url" id="f-cover" placeholder="https://example.com/image.jpg">
+                </div>
+
+                <div class="form-group">
+                  <label for="f-slug">Slug <span class="hint">（留空自动生成）</span></label>
+                  <input type="text" id="f-slug" placeholder="article-url-slug">
+                </div>
+
+                <div class="form-group full">
+                  <label for="f-excerpt">摘要</label>
+                  <textarea id="f-excerpt" rows="2" placeholder="文章简短描述，显示在文章列表…"></textarea>
+                </div>
+
+                <div class="form-group full">
+                  <label>正文内容 <span style="color:red">*</span></label>
+                  <div class="editor-wrap">
+                    <div class="editor-toolbar">
+                      <button type="button" class="toolbar-btn" data-cmd="bold"><strong>B</strong></button>
+                      <button type="button" class="toolbar-btn" data-cmd="italic"><em>I</em></button>
+                      <button type="button" class="toolbar-btn" data-cmd="underline"><u>U</u></button>
+                      <div class="toolbar-sep"></div>
+                      <button type="button" class="toolbar-btn" data-cmd="h2">H2</button>
+                      <button type="button" class="toolbar-btn" data-cmd="h3">H3</button>
+                      <div class="toolbar-sep"></div>
+                      <button type="button" class="toolbar-btn" data-cmd="insertUnorderedList">• 列表</button>
+                      <button type="button" class="toolbar-btn" data-cmd="insertOrderedList">1. 列表</button>
+                      <div class="toolbar-sep"></div>
+                      <button type="button" class="toolbar-btn" data-cmd="blockquote">引用</button>
+                      <button type="button" class="toolbar-btn" data-cmd="createLink">链接</button>
+                      <button type="button" class="toolbar-btn" data-cmd="insertImage">图片</button>
+                      <div class="toolbar-sep"></div>
+                      <button type="button" class="toolbar-btn" data-cmd="removeFormat">清除格式</button>
+                      <button type="button" class="toolbar-btn" data-cmd="html">HTML模式</button>
+                    </div>
+                    <div id="content-editor"
+                         contenteditable="true"
+                         data-placeholder="在此输入文章内容…"></div>
+                    <textarea id="content-html" placeholder="粘贴 HTML 内容…"></textarea>
+                  </div>
+                </div>
+
+                <!-- AFS Settings Section -->
+                <div class="section-label full">
+                  Google AFS 广告设置
+                </div>
+
+                <div class="form-group">
+                  <label for="f-afs-pub">Publisher ID</label>
+                  <input type="text" id="f-afs-pub" placeholder="pub-XXXXXXXXXXXXXXXX">
+                </div>
+
+                <div class="form-group">
+                  <label for="f-afs-style">Style ID</label>
+                  <input type="text" id="f-afs-style" placeholder="XXXXXXXXXX">
+                </div>
+
+                <div class="form-group full">
+                  <label>相关搜索词组 1 <span class="hint">（5个搜索词，显示在文章页第一个广告块旁）</span></label>
+                  <div class="terms-grid">
+                    <input type="text" class="terms-1" placeholder="搜索词 1">
+                    <input type="text" class="terms-1" placeholder="搜索词 2">
+                    <input type="text" class="terms-1" placeholder="搜索词 3">
+                    <input type="text" class="terms-1" placeholder="搜索词 4">
+                    <input type="text" class="terms-1" placeholder="搜索词 5">
+                  </div>
+                </div>
+
+                <div class="form-group full">
+                  <label>相关搜索词组 2 <span class="hint">（5个搜索词，显示在文章页第二个广告块旁）</span></label>
+                  <div class="terms-grid">
+                    <input type="text" class="terms-2" placeholder="搜索词 1">
+                    <input type="text" class="terms-2" placeholder="搜索词 2">
+                    <input type="text" class="terms-2" placeholder="搜索词 3">
+                    <input type="text" class="terms-2" placeholder="搜索词 4">
+                    <input type="text" class="terms-2" placeholder="搜索词 5">
+                  </div>
+                </div>
+
+              </div><!-- /.form-grid -->
+
+              <div style="margin-top:1.5rem;display:flex;gap:.75rem;flex-wrap:wrap;">
+                <button type="submit" class="btn btn-primary" id="save-article-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  保存文章
+                </button>
+                <button type="button" class="btn btn-outline" id="clear-form-btn">清空表单</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel: Import ───────────────────────────────────────────────── -->
+      <div class="panel" id="panel-import">
+        <div class="card" style="margin-bottom:1.25rem;">
+          <div class="card-header"><h2>导入文章（JSON 文件上传）</h2></div>
+          <div class="card-body">
+            <div id="import-alert" style="display:none;margin-bottom:1rem;"></div>
+            <div class="import-drop" id="import-drop">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+              <p style="font-weight:500;margin-bottom:.25rem;">拖拽 JSON 文件到此处，或点击选择文件</p>
+              <p style="font-size:.78rem;">支持标准文章 JSON 格式</p>
+              <input type="file" id="import-file" accept=".json,application/json">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h2>粘贴 JSON 内容</h2></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="import-json-text">粘贴文章 JSON</label>
+              <textarea id="import-json-text" rows="12"
+                placeholder='{"articles": [{"title": "文章标题", "content": "<p>内容</p>", ...}]}'
+                style="font-family:monospace;font-size:.82rem;"></textarea>
+            </div>
+            <div style="margin-top:.75rem;display:flex;gap:.75rem;">
+              <button class="btn btn-primary" id="import-json-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+                导入
+              </button>
+              <button class="btn btn-outline" id="import-sample-btn">填入示例格式</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel: Settings ─────────────────────────────────────────────── -->
+      <div class="panel" id="panel-settings">
+        <div class="card">
+          <div class="card-header"><h2>网站设置</h2></div>
+          <div class="card-body">
+            <div id="settings-alert" style="display:none;margin-bottom:1rem;"></div>
+            <form id="settings-form">
+              <div class="form-grid">
+
+                <div class="form-group">
+                  <label for="s-name">网站名称</label>
+                  <input type="text" id="s-name" placeholder="我的博客">
+                </div>
+
+                <div class="form-group">
+                  <label for="s-url">网站 URL</label>
+                  <input type="url" id="s-url" placeholder="https://example.com">
+                </div>
+
+                <div class="form-group full">
+                  <label for="s-desc">网站描述</label>
+                  <textarea id="s-desc" rows="2" placeholder="分享知识与见解"></textarea>
+                </div>
+
+                <div class="form-group full">
+                  <label for="s-logo">Logo URL</label>
+                  <input type="url" id="s-logo" placeholder="https://example.com/logo.png">
+                </div>
+
+                <div class="form-group">
+                  <label for="s-per-page">每页文章数</label>
+                  <input type="number" id="s-per-page" min="1" max="100" placeholder="10">
+                </div>
+
+                <div class="section-label full">默认 Google AFS 设置</div>
+
+                <div class="form-group">
+                  <label for="s-afs-pub">默认 Publisher ID</label>
+                  <input type="text" id="s-afs-pub" placeholder="pub-XXXXXXXXXXXXXXXX">
+                </div>
+
+                <div class="form-group">
+                  <label for="s-afs-style">默认 Style ID</label>
+                  <input type="text" id="s-afs-style" placeholder="XXXXXXXXXX">
+                </div>
+
+                <div class="section-label full">修改管理员密码 <span class="hint">（留空保持不变）</span></div>
+
+                <div class="form-group">
+                  <label for="s-new-pwd">新密码</label>
+                  <input type="password" id="s-new-pwd" placeholder="输入新密码（留空不修改）" autocomplete="new-password">
+                </div>
+
+                <div class="form-group">
+                  <label for="s-confirm-pwd">确认新密码</label>
+                  <input type="password" id="s-confirm-pwd" placeholder="再次输入新密码" autocomplete="new-password">
+                </div>
+
+              </div>
+
+              <div style="margin-top:1.5rem;">
+                <button type="submit" class="btn btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  保存设置
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.admin-content -->
+  </div><!-- /.admin-main -->
+</div><!-- /#admin-page -->
+
+<!-- ── Confirm Modal ──────────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="confirm-title">确认操作</h3>
+      <button class="modal-close" id="confirm-close">✕</button>
+    </div>
+    <div class="modal-body" id="confirm-body">确定要执行此操作吗？</div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" id="confirm-cancel">取消</button>
+      <button class="btn btn-danger btn-sm" id="confirm-ok">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Loading Overlay ────────────────────────────────────────────────────── -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner-lg"></div>
+</div>
+
+<!-- ── Toast Container ────────────────────────────────────────────────────── -->
+<div id="toaster"></div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>

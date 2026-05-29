@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>搜索结果 - 我的博客</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Google AFS Script -->
+  <script async src="https://www.google.com/adsense/search/ads.js"></script>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="site-logo" id="site-logo">我的博客</a>
+    <div class="header-search">
+      <div class="search-box">
+        <input type="text" id="header-search-input" placeholder="搜索文章…" autocomplete="off">
+        <button id="header-search-btn" title="搜索">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a href="admin/index.html" class="btn-admin">管理后台</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Main ───────────────────────────────────────────────────────────────── -->
+<main>
+  <div class="container">
+
+    <!-- Back + header -->
+    <div class="results-header">
+      <a href="javascript:history.back()" class="results-back">
+        ← 返回
+      </a>
+      <div class="results-query">搜索：<span id="query-display"></span></div>
+      <p id="results-subtitle" style="color:var(--text-muted);font-size:.875rem;"></p>
+    </div>
+
+    <!-- Loading -->
+    <div id="results-loading" class="loading">
+      <div class="spinner"></div>
+      <p>加载中…</p>
+    </div>
+
+    <!-- Results layout -->
+    <div id="results-body" style="display:none;" class="results-layout">
+
+      <!-- Main: AFS Ad + Related Articles -->
+      <div>
+        <!-- AFS Ad Unit -->
+        <div class="results-ad-section">
+          <div class="results-ad-title">广告</div>
+          <div id="afs-results-container">
+            <!-- AFS ad injected here -->
+          </div>
+        </div>
+
+        <!-- Related Articles from same category -->
+        <div>
+          <h2 class="related-articles-title">相关文章</h2>
+          <div id="related-articles-main">
+            <div class="loading" style="padding:1rem 0;">
+              <div class="spinner" style="width:1.5rem;height:1.5rem;border-width:2px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar: More search terms -->
+      <aside>
+        <div class="widget" id="more-terms-widget" style="display:none;">
+          <h3 class="widget-title">相关搜索词</h3>
+          <div class="search-chips" id="more-terms-chips" style="flex-direction:column;gap:.4rem;"></div>
+        </div>
+      </aside>
+
+    </div><!-- /#results-body -->
+
+  </div>
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+<footer class="site-footer">
+  <div class="container">
+    <p id="footer-text">© 2024 我的博客. 保留所有权利.</p>
+  </div>
+</footer>
+
+<script src="js/results.js"></script>
+</body>
+</html>
