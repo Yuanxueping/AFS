@@ -8,7 +8,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <script async src="https://www.google.com/adsense/search/ads.js"></script>
+
+  <!-- Google AFS / CSA -->
+  <script async="async" src="https://www.google.com/adsense/search/ads.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(
+      arguments)},g[o]['t']=1*new Date})(window,'_googCsa');
+  </script>
 </head>
 <body>
 
@@ -26,7 +32,7 @@
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
         <input type="text" id="header-search-input" placeholder="Search articles…" autocomplete="off">
-        <button id="header-search-btn" aria-label="Search">Search</button>
+        <button id="header-search-btn">Search</button>
       </div>
     </div>
     <nav class="header-nav">
@@ -79,34 +85,20 @@
 
         <img id="art-cover" class="article-cover" style="display:none;" alt="">
 
-        <!-- Article content — AFS slots will be injected here by JS -->
+        <!-- Article content — AFS slots injected here by JS -->
         <div id="art-content" class="article-content"></div>
 
-        <!-- AFS slot 1 template (hidden, moved into content by JS) -->
-        <div id="afs-slot-1" class="afs-section" style="display:none;">
-          <div class="afs-section-title">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-            Related Searches
-          </div>
-          <div class="search-chips" id="terms-group-1"></div>
-          <div class="afs-ad-container" id="afs-container-1"></div>
-        </div>
+        <!--
+          AFS Related Search slot 1 — Google renders related searches inside.
+          JS moves this div after the first paragraph.
+        -->
+        <div id="relatedsearches1" class="afs-rs-slot" style="display:none;"></div>
 
-        <!-- AFS slot 2 template (hidden, moved into content by JS) -->
-        <div id="afs-slot-2" class="afs-section" style="display:none;">
-          <div class="afs-section-title">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-            People Also Search For
-          </div>
-          <div class="search-chips" id="terms-group-2"></div>
-          <div class="afs-ad-container" id="afs-container-2"></div>
-        </div>
+        <!--
+          AFS Related Search slot 2 — Google renders related searches inside.
+          JS moves this div before the last paragraph.
+        -->
+        <div id="relatedsearches2" class="afs-rs-slot" style="display:none;"></div>
 
       </article>
 

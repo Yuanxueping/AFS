@@ -3,6 +3,7 @@
   'use strict';
 
   const API = '/api/articles.php';
+  let siteConfig = {};
 
   async function init() {
     await loadSiteConfig();
@@ -30,23 +31,21 @@
     try {
       const res = await fetch('/api/articles.php?action=config');
       if (!res.ok) return;
-      const cfg = await res.json();
-      if (cfg.siteName) {
+      siteConfig = await res.json();
+      const name = siteConfig.siteName;
+      if (name) {
         document.querySelectorAll('#site-logo .logo-text, #footer-site-name')
-          .forEach(el => el && (el.textContent = cfg.siteName));
+          .forEach(el => el && (el.textContent = name));
         const footer = document.getElementById('footer-text');
-        if (footer) footer.textContent = `© ${new Date().getFullYear()} ${cfg.siteName}. All rights reserved.`;
+        if (footer) footer.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
       }
     } catch { /* ignore */ }
   }
 
   // ── Render Article ────────────────────────────────────────────────────────
   function renderArticle(a) {
-    document.title = `${a.title} — ${document.querySelector('#site-logo .logo-text')?.textContent || 'Blog'}`;
-
-    const afs = a.afs || {};
-    const hasAfs = !!(afs.publisherId && afs.publisherId.trim() &&
-                      afs.publisherId !== 'pub-XXXXXXXXXXXXXXXX');
+    const siteName = siteConfig.siteName || document.querySelector('#site-logo .logo-text')?.textContent || '';
+    document.title = siteName ? `${a.title} — ${siteName}` : a.title;
 
     // Category badge
     const catEl = document.getElementById('art-category');
@@ -54,19 +53,18 @@
       catEl.textContent = a.category;
       catEl.style.display = '';
       const { color, bg } = catStyle(a.category);
-      catEl.style.cssText += `;--cat-color:${color};--cat-bg:${bg}`;
+      catEl.style.setProperty('--cat-color', color);
+      catEl.style.setProperty('--cat-bg', bg);
     }
 
     document.getElementById('art-title').textContent = a.title;
 
-    // Meta
     document.getElementById('art-meta').innerHTML = `
       <span>${formatDate(a.createdAt)}</span>
       ${a.category
         ? `<span>in <a href="index.html?cat=${encodeURIComponent(a.category)}">${esc(a.category)}</a></span>`
         : ''}`;
 
-    // Tags
     const tagsEl = document.getElementById('art-tags');
     if (a.tags && a.tags.length) {
       tagsEl.innerHTML = a.tags.map(t =>
@@ -74,7 +72,6 @@
       ).join('');
     }
 
-    // Cover
     if (a.coverImage) {
       const img = document.getElementById('art-cover');
       img.src = a.coverImage;
@@ -86,99 +83,60 @@
     const contentEl = document.getElementById('art-content');
     contentEl.innerHTML = a.content || '';
 
-    // Inject AFS slots into content at correct positions
-    injectAfsSlots(contentEl, a, afs, hasAfs);
+    // Inject AFS slots into content, then fire _googCsa if configured
+    const afs      = a.afs || {};
+    const pubId    = siteConfig.afsPublisherId || '';
+    const styleId  = afs.styleId  || '';
+    const channelId = afs.channelId || '';
 
-    // Build ToC
+    injectAndFireAfs(contentEl, pubId, styleId, channelId);
+
     buildToc();
 
-    // Show article
     document.getElementById('article-loading').style.display = 'none';
     document.getElementById('article-body').style.display = '';
   }
 
-  // ── Inject AFS Slots Into Content ─────────────────────────────────────────
-  function injectAfsSlots(contentEl, article, afs, hasAfs) {
+  // ── Inject AFS Slots + Fire _googCsa ─────────────────────────────────────
+  function injectAndFireAfs(contentEl, pubId, styleId, channelId) {
+    const slot1 = document.getElementById('relatedsearches1');
+    const slot2 = document.getElementById('relatedsearches2');
+
     const paragraphs = contentEl.querySelectorAll(':scope > p');
-    if (paragraphs.length < 2) return; // not enough paragraphs to inject
+    if (paragraphs.length < 2) return;
 
-    const slot1 = document.getElementById('afs-slot-1');
-    const slot2 = document.getElementById('afs-slot-2');
-
-    // Position slot 1: after first <p>
+    // Move slot1 after the first paragraph
     paragraphs[0].after(slot1);
-
-    // Position slot 2: before last <p>
+    // Move slot2 before the last paragraph
     paragraphs[paragraphs.length - 1].before(slot2);
 
-    if (!hasAfs) {
-      // No AFS configured — keep slots hidden (placeholder space only)
-      return;
-    }
+    // Only fire AFS if pubId is configured for this site
+    if (!pubId || !styleId) return;
 
-    // AFS is configured — render both groups
-    const sid = afs.styleId   || '';
-    const cid = afs.channelId || '';
-    const pid = afs.publisherId;
+    slot1.style.display = '';
+    slot2.style.display = '';
 
-    const group1 = (afs.relatedTermsGroup1 || []).filter(t => t && t.trim());
-    const group2 = (afs.relatedTermsGroup2 || []).filter(t => t && t.trim());
+    // Build resultsPageBaseUrl — carries styleId and channelId so the
+    // results page knows which IDs to use without an extra API lookup.
+    const baseHref = window.location.href.replace(/\/[^/]*(\?.*)?$/, '/');
+    const rsParams = new URLSearchParams({ sid: styleId });
+    if (channelId) rsParams.set('cid', channelId);
+    const resultsPageBaseUrl = `${baseHref}results.html?${rsParams}`;
 
-    if (group1.length) {
-      renderTermsGroup(slot1, 'terms-group-1', 'afs-container-1', group1, article.id, pid, sid, cid);
-    }
-    if (group2.length) {
-      renderTermsGroup(slot2, 'terms-group-2', 'afs-container-2', group2, article.id, pid, sid, cid);
-    }
-  }
-
-  // ── Render a Terms Group ───────────────────────────────────────────────────
-  function renderTermsGroup(slotEl, chipsId, adId, terms, articleId, pubId, styleId, channelId) {
-    // Build URL params that carry AFS identifiers to results page
-    const baseParams = new URLSearchParams({
-      aid: articleId,
-      sid: styleId,
-      ...(channelId ? { cid: channelId } : {}),
-    });
-
-    const chipsEl = document.getElementById(chipsId);
-    chipsEl.innerHTML = terms.map(term => `
-      <a class="search-chip"
-         href="results.html?q=${encodeURIComponent(term)}&${baseParams}"
-         target="_self">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
-        ${esc(term)}
-      </a>`).join('');
-
-    // Inject AFS ad using first term as representative query
-    const adEl = document.getElementById(adId);
-    adEl.classList.add('loaded');
-    injectAfsAd(adId, pubId, styleId, channelId, terms[0]);
-
-    slotEl.style.display = '';
-  }
-
-  // ── Inject AFS Ad ─────────────────────────────────────────────────────────
-  function injectAfsAd(containerId, pubId, styleId, channelId, query) {
-    const tryLoad = () => {
-      if (window.google?.ads?.search?.Ads) {
-        try {
-          const pageOpts = { pubId, styleId, query, hl: 'en' };
-          if (channelId) pageOpts.channel = channelId;
-          window.google.ads.search.Ads(pageOpts, {
-            container: containerId,
-            width: '100%',
-            number: '3',
-          });
-        } catch (e) { console.warn('AFS error:', e); }
-      } else {
-        setTimeout(tryLoad, 500);
-      }
+    // pageOptions shared by both relatedsearch blocks
+    const pageOptions = {
+      pubId,
+      styleId,
+      relatedSearchTargeting: 'content',
+      resultsPageBaseUrl,
+      resultsPageQueryParam: 'q',
     };
-    tryLoad();
+    if (channelId) pageOptions.channel = channelId;
+
+    _googCsa('relatedsearch', pageOptions,
+      { container: 'relatedsearches1', relatedSearches: 5 },
+      { container: 'relatedsearches2', relatedSearches: 5 }
+    );
   }
 
   // ── Table of Contents ─────────────────────────────────────────────────────
@@ -260,7 +218,7 @@
     document.getElementById('article-error').style.display  = '';
   }
 
-  // ── Category Color ────────────────────────────────────────────────────────
+  // ── Category Colors ───────────────────────────────────────────────────────
   const CAT_COLORS = {
     'technology':  { color: '#3b82f6', bg: '#eff6ff' },
     'programming': { color: '#8b5cf6', bg: '#f5f3ff' },
@@ -274,8 +232,7 @@
     'default':     { color: '#64748b', bg: '#f8fafc' },
   };
   function catStyle(name) {
-    if (!name) return CAT_COLORS.default;
-    return CAT_COLORS[name.toLowerCase().replace(/\s+/g, '')] || CAT_COLORS.default;
+    return CAT_COLORS[name?.toLowerCase().replace(/\s+/g, '')] || CAT_COLORS.default;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

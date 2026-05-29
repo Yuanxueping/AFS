@@ -5,22 +5,26 @@
   const API = '/api/articles.php';
 
   async function init() {
-    await loadSiteConfig();
-
+    // Read URL params set when user clicked a related search term on article page:
+    //   ?q=QUERY&sid=STYLE_ID&cid=CHANNEL_ID&aid=ARTICLE_ID
     const params    = new URLSearchParams(location.search);
     const query     = params.get('q')   || '';
+    const styleId   = params.get('sid') || '';
+    const channelId = params.get('cid') || '';
     const aid       = params.get('aid') || '';
-    const styleId   = params.get('sid') || '';   // passed from article chip URL
-    const channelId = params.get('cid') || '';   // passed from article chip URL
 
-    // Populate header search
     document.getElementById('header-search-input').value = query;
-
-    // Display query
     document.getElementById('query-display').textContent = query || '(no query)';
     document.title = `"${query}" — Search Results`;
 
-    // Fetch source article (for related articles + sidebar terms + fallback AFS config)
+    // Load site config for pubId and site name
+    const cfg = await loadSiteConfig();
+    const pubId = cfg.afsPublisherId || '';
+
+    // Fire AFS ad immediately (don't wait for article fetch)
+    fireAfsAd(pubId, styleId, channelId, query);
+
+    // Fetch source article for related articles list + sidebar terms
     let sourceArticle = null;
     if (aid) {
       try {
@@ -29,32 +33,10 @@
       } catch { /* ignore */ }
     }
 
-    // Resolve AFS credentials:
-    // URL params (sid/cid) take priority — they were explicitly passed from the chip click.
-    // Fallback to source article's stored AFS config.
-    const afs       = sourceArticle?.afs || {};
-    const pubId     = afs.publisherId || '';
-    const resolvedStyleId   = styleId   || afs.styleId   || '';
-    const resolvedChannelId = channelId || afs.channelId || '';
-
-    // Inject AFS ad
-    const adSection = document.getElementById('results-ad-section');
-    const adEl      = document.getElementById('afs-results-container');
-
-    if (pubId && resolvedStyleId && query) {
-      adEl.classList.add('loaded');
-      injectAfsAd('afs-results-container', pubId, resolvedStyleId, resolvedChannelId, query);
-    } else {
-      // No AFS config — hide the ad section entirely
-      adSection.style.display = 'none';
-    }
-
-    // Load related articles
     await loadRelatedArticles(sourceArticle, query);
 
-    // Sidebar: other terms from source article (carry same sid/cid params)
-    if (sourceArticle?.afs) {
-      renderMoreTerms(sourceArticle, resolvedStyleId, resolvedChannelId);
+    if (sourceArticle) {
+      renderMoreTerms(sourceArticle, styleId, channelId);
     }
 
     document.getElementById('results-loading').style.display = 'none';
@@ -63,24 +45,50 @@
     setupSearch();
   }
 
-  // ── AFS Ad ────────────────────────────────────────────────────────────────
-  function injectAfsAd(containerId, pubId, styleId, channelId, query) {
-    const tryLoad = () => {
-      if (window.google?.ads?.search?.Ads) {
-        try {
-          const pageOpts = { pubId, styleId, query, hl: 'en' };
-          if (channelId) pageOpts.channel = channelId;
-          window.google.ads.search.Ads(pageOpts, {
-            container: containerId,
-            width: '100%',
-            number: '1',   // results page shows 1 ad
-          });
-        } catch (e) { console.warn('AFS error:', e); }
-      } else {
-        setTimeout(tryLoad, 500);
-      }
+  // ── Fire _googCsa AFS Ad ──────────────────────────────────────────────────
+  function fireAfsAd(pubId, styleId, channelId, query) {
+    const adSection = document.getElementById('results-ad-section');
+
+    if (!pubId || !styleId || !query) {
+      // Not configured — hide the ad section
+      adSection.style.display = 'none';
+      return;
+    }
+
+    // Build resultsPageBaseUrl for any "More searches" links the ad unit generates
+    const baseHref = window.location.href.replace(/\/[^/]*(\?.*)?$/, '/');
+    const rsParams = new URLSearchParams({ sid: styleId });
+    if (channelId) rsParams.set('cid', channelId);
+    const resultsPageBaseUrl = `${baseHref}results.html?${rsParams}`;
+
+    const pageOptions = {
+      pubId,
+      query,
+      styleId,
+      adsafe: 'low',
+      resultsPageBaseUrl,
+      resultsPageQueryParam: 'q',
     };
-    tryLoad();
+    if (channelId) pageOptions.channel = channelId;
+
+    _googCsa('ads', pageOptions, { container: 'afscontainer1' });
+  }
+
+  // ── Site Config ───────────────────────────────────────────────────────────
+  async function loadSiteConfig() {
+    try {
+      const res = await fetch('/api/articles.php?action=config');
+      if (!res.ok) return {};
+      const cfg = await res.json();
+      const name = cfg.siteName;
+      if (name) {
+        document.querySelectorAll('#site-logo .logo-text, #footer-site-name')
+          .forEach(el => el && (el.textContent = name));
+        const footer = document.getElementById('footer-text');
+        if (footer) footer.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
+      }
+      return cfg;
+    } catch { return {}; }
   }
 
   // ── Related Articles ──────────────────────────────────────────────────────
@@ -107,7 +115,8 @@
         return;
       }
 
-      if (subtitleEl) subtitleEl.textContent = `${articles.length} related article${articles.length !== 1 ? 's' : ''} found`;
+      if (subtitleEl) subtitleEl.textContent =
+        `${articles.length} related article${articles.length !== 1 ? 's' : ''} found`;
 
       el.innerHTML = articles.slice(0, 10).map((a, i) => `
         <div class="related-article-item">
@@ -127,6 +136,8 @@
   }
 
   // ── Sidebar: More Terms ───────────────────────────────────────────────────
+  // Shows other search terms from the source article so users can keep exploring.
+  // Carries sid/cid forward so every click keeps the AFS attribution chain intact.
   function renderMoreTerms(article, styleId, channelId) {
     const afs = article.afs || {};
     const allTerms = [
@@ -140,7 +151,6 @@
     const chips  = document.getElementById('more-terms-chips');
     widget.style.display = '';
 
-    // Build base params (carry sid/cid forward)
     const baseParams = new URLSearchParams({ aid: article.id, sid: styleId });
     if (channelId) baseParams.set('cid', channelId);
 
@@ -150,26 +160,11 @@
          style="justify-content:flex-start;">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             style="width:12px;height:12px;">
+             style="width:12px;height:12px;flex-shrink:0;">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
         ${esc(term)}
       </a>`).join('');
-  }
-
-  // ── Site Config ───────────────────────────────────────────────────────────
-  async function loadSiteConfig() {
-    try {
-      const res = await fetch('/api/articles.php?action=config');
-      if (!res.ok) return;
-      const cfg = await res.json();
-      if (cfg.siteName) {
-        document.querySelectorAll('#site-logo .logo-text, #footer-site-name')
-          .forEach(el => el && (el.textContent = cfg.siteName));
-        const footer = document.getElementById('footer-text');
-        if (footer) footer.textContent = `© ${new Date().getFullYear()} ${cfg.siteName}. All rights reserved.`;
-      }
-    } catch { /* ignore */ }
   }
 
   // ── Search ────────────────────────────────────────────────────────────────

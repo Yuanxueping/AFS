@@ -252,7 +252,6 @@
       coverImage:document.getElementById('f-cover').value.trim(),
       tags,
       afs: {
-        publisherId:        document.getElementById('f-afs-pub').value.trim(),
         styleId:            document.getElementById('f-afs-style').value.trim(),
         channelId:          document.getElementById('f-afs-channel').value.trim(),
         relatedTermsGroup1: terms1,
@@ -307,9 +306,8 @@
     document.getElementById('content-html').value    = a.content || '';
 
     const afs = a.afs || {};
-    document.getElementById('f-afs-pub').value     = afs.publisherId || '';
-    document.getElementById('f-afs-style').value   = afs.styleId    || '';
-    document.getElementById('f-afs-channel').value = afs.channelId  || '';
+    document.getElementById('f-afs-style').value   = afs.styleId   || '';
+    document.getElementById('f-afs-channel').value = afs.channelId || '';
 
     const t1 = afs.relatedTermsGroup1 || [];
     const t2 = afs.relatedTermsGroup2 || [];
@@ -432,10 +430,8 @@
           tags: ['标签1', '标签2'],
           coverImage: '',
           afs: {
-            publisherId: 'pub-XXXXXXXXXXXXXXXX',
-            styleId: 'XXXXXXXXXX',
-            relatedTermsGroup1: ['搜索词1', '搜索词2', '搜索词3', '搜索词4', '搜索词5'],
-            relatedTermsGroup2: ['搜索词1', '搜索词2', '搜索词3', '搜索词4', '搜索词5'],
+            styleId: '1234566',
+            channelId: '1111111',
           }
         }]
       };
@@ -492,9 +488,9 @@
     document.getElementById('s-desc').value      = res.siteDescription || '';
     document.getElementById('s-logo').value      = res.logo || '';
     document.getElementById('s-per-page').value  = res.articlesPerPage || 10;
-    document.getElementById('s-afs-pub').value     = res.defaultAfsPublisherId  || '';
-    document.getElementById('s-afs-style').value   = res.defaultAfsStyleId     || '';
-    document.getElementById('s-afs-channel').value = res.defaultAfsChannelId   || '';
+    document.getElementById('s-afs-pub').value     = res.afsPublisherId     || '';
+    document.getElementById('s-afs-style').value   = res.defaultAfsStyleId  || '';
+    document.getElementById('s-afs-channel').value = res.defaultAfsChannelId || '';
   }
 
   async function saveSettings() {
@@ -512,9 +508,9 @@
       siteDescription:        document.getElementById('s-desc').value.trim(),
       logo:                   document.getElementById('s-logo').value.trim(),
       articlesPerPage:        parseInt(document.getElementById('s-per-page').value, 10) || 10,
-      defaultAfsPublisherId:  document.getElementById('s-afs-pub').value.trim(),
-      defaultAfsStyleId:      document.getElementById('s-afs-style').value.trim(),
-      defaultAfsChannelId:    document.getElementById('s-afs-channel').value.trim(),
+      afsPublisherId:      document.getElementById('s-afs-pub').value.trim(),
+      defaultAfsStyleId:   document.getElementById('s-afs-style').value.trim(),
+      defaultAfsChannelId: document.getElementById('s-afs-channel').value.trim(),
     };
     if (newPwd) payload.newPassword = newPwd;
 
