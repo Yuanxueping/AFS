@@ -1,80 +1,133 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>我的博客</title>
-  <meta name="description" content="分享知识与见解">
+  <title>The Daily Insight</title>
+  <meta name="description" content="Explore ideas that matter — stories on technology, health, finance & more.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<!-- ── Top Nav ──────────────────────────────────────────────────────────────── -->
 <header class="site-header">
   <div class="container header-inner">
-    <a href="index.html" class="site-logo" id="site-logo">我的博客</a>
-    <div class="header-search">
-      <div class="search-box">
-        <input type="text" id="header-search-input" placeholder="搜索文章…" autocomplete="off">
-        <button id="header-search-btn" title="搜索">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-        </button>
-      </div>
-    </div>
+    <a href="index.html" class="site-logo" id="site-logo">
+      <span class="logo-icon">◈</span>
+      <span class="logo-text">The Daily Insight</span>
+    </a>
     <nav class="header-nav">
-      <a href="admin/index.html" class="btn-admin">管理后台</a>
+      <a href="index.html" class="nav-link active">Home</a>
+      <a href="index.html?cat=Technology" class="nav-link">Tech</a>
+      <a href="index.html?cat=Health" class="nav-link">Health</a>
+      <a href="index.html?cat=Finance" class="nav-link">Finance</a>
+      <a href="admin/index.html" class="btn-admin">Admin</a>
     </nav>
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
 
-<!-- ── Main ───────────────────────────────────────────────────────────────── -->
-<main>
-  <div class="container main-layout">
-
-    <!-- Articles area -->
-    <section>
-      <div id="search-info" style="display:none; margin-bottom:1rem;">
-        <span id="search-info-text" style="color:var(--text-muted);font-size:.9rem;"></span>
-        <a href="index.html" style="font-size:.85rem;margin-left:.75rem;">清除搜索</a>
-      </div>
-
-      <div id="articles-container">
-        <div class="loading">
-          <div class="spinner"></div>
-          <p>加载文章中…</p>
+<!-- ── Hero Banner ──────────────────────────────────────────────────────────── -->
+<section class="hero-banner" id="hero-banner">
+  <div class="hero-bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+  <div class="container hero-inner">
+    <div class="hero-text">
+      <p class="hero-label" id="hero-label">✦ Featured Reads</p>
+      <h1 class="hero-title" id="hero-title">Ideas &amp; Insights<br>Worth Exploring</h1>
+      <p class="hero-subtitle" id="hero-subtitle">Discover stories on technology, wellness, personal finance, and the forces shaping our world.</p>
+      <div class="hero-search-wrap">
+        <div class="hero-search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="hero-search-input" placeholder="Search articles…" autocomplete="off">
+          <button id="hero-search-btn">Search</button>
         </div>
       </div>
-
-      <div id="pagination-container" class="pagination"></div>
-    </section>
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="widget">
-        <h3 class="widget-title">文章分类</h3>
-        <ul class="category-list" id="category-list">
-          <li><a href="#" data-cat="" class="active">全部文章 <span class="cat-count" id="total-count">0</span></a></li>
-        </ul>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-card">
+        <span class="stat-num" id="stat-articles">0</span>
+        <span class="stat-label">Articles</span>
       </div>
-      <div class="widget">
-        <h3 class="widget-title">关于本站</h3>
-        <p id="site-description" style="font-size:.875rem;color:var(--text-muted);line-height:1.6;">分享知识与见解</p>
+      <div class="stat-card">
+        <span class="stat-num" id="stat-categories">0</span>
+        <span class="stat-label">Categories</span>
       </div>
-    </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ── Category Pills ────────────────────────────────────────────────────────── -->
+<div class="category-bar-wrap">
+  <div class="container">
+    <div class="category-bar" id="category-bar">
+      <button class="cat-pill active" data-cat="">All Posts</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main Content ──────────────────────────────────────────────────────────── -->
+<main class="site-main">
+  <div class="container">
+
+    <!-- Search notice -->
+    <div id="search-info" style="display:none;" class="search-notice">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <span id="search-info-text"></span>
+      <a href="index.html" class="clear-search">Clear ×</a>
+    </div>
+
+    <!-- Section heading -->
+    <div class="section-heading" id="section-heading">
+      <h2 class="section-title">Latest Articles</h2>
+      <p class="section-count" id="section-count"></p>
+    </div>
+
+    <!-- Cards grid -->
+    <div id="articles-container">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading articles…</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination-container" class="pagination"></div>
 
   </div>
 </main>
 
-<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+<!-- ── Footer ───────────────────────────────────────────────────────────────── -->
 <footer class="site-footer">
-  <div class="container">
-    <p id="footer-text">© 2024 我的博客. 保留所有权利.</p>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <a href="index.html" class="site-logo footer-logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text" id="footer-site-name">The Daily Insight</span>
+      </a>
+      <p class="footer-desc" id="footer-desc">Explore ideas that matter.</p>
+    </div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="admin/index.html">Admin</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p id="footer-text">© 2025 The Daily Insight. All rights reserved.</p>
   </div>
 </footer>
 
