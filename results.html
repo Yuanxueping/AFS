@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>搜索结果 - 我的博客</title>
+  <title>Search Results</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <!-- Google AFS Script -->
   <script async src="https://www.google.com/adsense/search/ads.js"></script>
 </head>
 <body>
@@ -16,20 +15,25 @@
 <!-- ── Header ─────────────────────────────────────────────────────────────── -->
 <header class="site-header">
   <div class="container header-inner">
-    <a href="index.html" class="site-logo" id="site-logo">我的博客</a>
-    <div class="header-search">
-      <div class="search-box">
-        <input type="text" id="header-search-input" placeholder="搜索文章…" autocomplete="off">
-        <button id="header-search-btn" title="搜索">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-        </button>
+    <a href="index.html" class="site-logo" id="site-logo">
+      <span class="logo-icon">◈</span>
+      <span class="logo-text">The Daily Insight</span>
+    </a>
+    <div class="header-search-compact">
+      <div class="search-box-compact">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="header-search-input" placeholder="Search articles…" autocomplete="off">
+        <button id="header-search-btn" aria-label="Search">Search</button>
       </div>
     </div>
     <nav class="header-nav">
-      <a href="admin/index.html" class="btn-admin">管理后台</a>
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="index.html?cat=Technology" class="nav-link">Tech</a>
+      <a href="index.html?cat=Health" class="nav-link">Health</a>
+      <a href="index.html?cat=Finance" class="nav-link">Finance</a>
     </nav>
   </div>
 </header>
@@ -38,62 +42,71 @@
 <main>
   <div class="container">
 
-    <!-- Back + header -->
     <div class="results-header">
       <a href="javascript:history.back()" class="results-back">
-        ← 返回
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        Back
       </a>
-      <div class="results-query">搜索：<span id="query-display"></span></div>
-      <p id="results-subtitle" style="color:var(--text-muted);font-size:.875rem;"></p>
+      <div class="results-query">Results for: <span id="query-display"></span></div>
+      <p id="results-subtitle" style="color:var(--text-muted);font-size:.875rem;margin-top:.25rem;"></p>
     </div>
 
     <!-- Loading -->
     <div id="results-loading" class="loading">
       <div class="spinner"></div>
-      <p>加载中…</p>
+      <p>Loading results…</p>
     </div>
 
-    <!-- Results layout -->
+    <!-- Results -->
     <div id="results-body" style="display:none;" class="results-layout">
 
-      <!-- Main: AFS Ad + Related Articles -->
       <div>
-        <!-- AFS Ad Unit -->
-        <div class="results-ad-section">
-          <div class="results-ad-title">广告</div>
-          <div id="afs-results-container">
-            <!-- AFS ad injected here -->
-          </div>
+        <!-- AFS Ad -->
+        <div class="results-ad-section" id="results-ad-section">
+          <div class="results-ad-title">Sponsored</div>
+          <div id="afs-results-container"></div>
         </div>
 
-        <!-- Related Articles from same category -->
-        <div>
-          <h2 class="related-articles-title">相关文章</h2>
-          <div id="related-articles-main">
-            <div class="loading" style="padding:1rem 0;">
-              <div class="spinner" style="width:1.5rem;height:1.5rem;border-width:2px;"></div>
-            </div>
+        <!-- Related Articles -->
+        <h2 class="related-articles-title">Related Articles</h2>
+        <div id="related-articles-main">
+          <div class="loading" style="padding:1rem 0;">
+            <div class="spinner" style="width:1.5rem;height:1.5rem;border-width:2px;"></div>
           </div>
         </div>
       </div>
 
-      <!-- Sidebar: More search terms -->
+      <!-- Sidebar -->
       <aside>
         <div class="widget" id="more-terms-widget" style="display:none;">
-          <h3 class="widget-title">相关搜索词</h3>
-          <div class="search-chips" id="more-terms-chips" style="flex-direction:column;gap:.4rem;"></div>
+          <h3 class="widget-title">More Searches</h3>
+          <div class="search-chips" id="more-terms-chips"
+               style="flex-direction:column;gap:.4rem;"></div>
         </div>
       </aside>
 
-    </div><!-- /#results-body -->
-
+    </div>
   </div>
 </main>
 
 <!-- ── Footer ─────────────────────────────────────────────────────────────── -->
 <footer class="site-footer">
-  <div class="container">
-    <p id="footer-text">© 2024 我的博客. 保留所有权利.</p>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <a href="index.html" class="site-logo footer-logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text" id="footer-site-name">The Daily Insight</span>
+      </a>
+    </div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p id="footer-text">© 2025 The Daily Insight. All rights reserved.</p>
   </div>
 </footer>
 

@@ -254,9 +254,9 @@
       afs: {
         publisherId:        document.getElementById('f-afs-pub').value.trim(),
         styleId:            document.getElementById('f-afs-style').value.trim(),
+        channelId:          document.getElementById('f-afs-channel').value.trim(),
         relatedTermsGroup1: terms1,
         relatedTermsGroup2: terms2,
-        resultsPageAdUnit:  '',
       }
     };
 
@@ -307,8 +307,9 @@
     document.getElementById('content-html').value    = a.content || '';
 
     const afs = a.afs || {};
-    document.getElementById('f-afs-pub').value   = afs.publisherId || '';
-    document.getElementById('f-afs-style').value = afs.styleId     || '';
+    document.getElementById('f-afs-pub').value     = afs.publisherId || '';
+    document.getElementById('f-afs-style').value   = afs.styleId    || '';
+    document.getElementById('f-afs-channel').value = afs.channelId  || '';
 
     const t1 = afs.relatedTermsGroup1 || [];
     const t2 = afs.relatedTermsGroup2 || [];
@@ -491,8 +492,9 @@
     document.getElementById('s-desc').value      = res.siteDescription || '';
     document.getElementById('s-logo').value      = res.logo || '';
     document.getElementById('s-per-page').value  = res.articlesPerPage || 10;
-    document.getElementById('s-afs-pub').value   = res.defaultAfsPublisherId || '';
-    document.getElementById('s-afs-style').value = res.defaultAfsStyleId || '';
+    document.getElementById('s-afs-pub').value     = res.defaultAfsPublisherId  || '';
+    document.getElementById('s-afs-style').value   = res.defaultAfsStyleId     || '';
+    document.getElementById('s-afs-channel').value = res.defaultAfsChannelId   || '';
   }
 
   async function saveSettings() {
@@ -512,6 +514,7 @@
       articlesPerPage:        parseInt(document.getElementById('s-per-page').value, 10) || 10,
       defaultAfsPublisherId:  document.getElementById('s-afs-pub').value.trim(),
       defaultAfsStyleId:      document.getElementById('s-afs-style').value.trim(),
+      defaultAfsChannelId:    document.getElementById('s-afs-channel').value.trim(),
     };
     if (newPwd) payload.newPassword = newPwd;
 

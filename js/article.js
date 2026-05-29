@@ -13,12 +13,12 @@
     if (!id) { showError(); return; }
 
     try {
-      const res     = await fetch(`${API}?id=${encodeURIComponent(id)}`);
-      if (!res.ok)  { showError(); return; }
+      const res = await fetch(`${API}?id=${encodeURIComponent(id)}`);
+      if (!res.ok) { showError(); return; }
       const article = await res.json();
       renderArticle(article);
       loadRelated(article);
-    } catch (e) {
+    } catch {
       showError();
     }
 
@@ -30,32 +30,41 @@
     try {
       const res = await fetch('/api/articles.php?action=config');
       if (!res.ok) return;
-      const config = await res.json();
-      if (config.siteName) {
-        document.getElementById('site-logo').textContent = config.siteName;
-      }
-      if (config.siteName) {
+      const cfg = await res.json();
+      if (cfg.siteName) {
+        document.querySelectorAll('#site-logo .logo-text, #footer-site-name')
+          .forEach(el => el && (el.textContent = cfg.siteName));
         const footer = document.getElementById('footer-text');
-        if (footer) footer.textContent = `© ${new Date().getFullYear()} ${config.siteName}. 保留所有权利.`;
+        if (footer) footer.textContent = `© ${new Date().getFullYear()} ${cfg.siteName}. All rights reserved.`;
       }
-    } catch (e) { /* ignore */ }
+    } catch { /* ignore */ }
   }
 
   // ── Render Article ────────────────────────────────────────────────────────
   function renderArticle(a) {
-    document.title = a.title + ' - 我的博客';
+    document.title = `${a.title} — ${document.querySelector('#site-logo .logo-text')?.textContent || 'Blog'}`;
 
-    // Header
+    const afs = a.afs || {};
+    const hasAfs = !!(afs.publisherId && afs.publisherId.trim() &&
+                      afs.publisherId !== 'pub-XXXXXXXXXXXXXXXX');
+
+    // Category badge
     const catEl = document.getElementById('art-category');
-    if (a.category) { catEl.textContent = a.category; catEl.style.display = ''; }
+    if (a.category) {
+      catEl.textContent = a.category;
+      catEl.style.display = '';
+      const { color, bg } = catStyle(a.category);
+      catEl.style.cssText += `;--cat-color:${color};--cat-bg:${bg}`;
+    }
 
     document.getElementById('art-title').textContent = a.title;
 
     // Meta
-    const meta = document.getElementById('art-meta');
-    meta.innerHTML = `
+    document.getElementById('art-meta').innerHTML = `
       <span>${formatDate(a.createdAt)}</span>
-      ${a.category ? `<span>分类：<a href="index.html?cat=${encodeURIComponent(a.category)}">${esc(a.category)}</a></span>` : ''}`;
+      ${a.category
+        ? `<span>in <a href="index.html?cat=${encodeURIComponent(a.category)}">${esc(a.category)}</a></span>`
+        : ''}`;
 
     // Tags
     const tagsEl = document.getElementById('art-tags');
@@ -65,7 +74,7 @@
       ).join('');
     }
 
-    // Cover image
+    // Cover
     if (a.coverImage) {
       const img = document.getElementById('art-cover');
       img.src = a.coverImage;
@@ -73,39 +82,69 @@
       img.style.display = '';
     }
 
-    // Content
-    document.getElementById('art-content').innerHTML = a.content || '';
+    // Set content
+    const contentEl = document.getElementById('art-content');
+    contentEl.innerHTML = a.content || '';
+
+    // Inject AFS slots into content at correct positions
+    injectAfsSlots(contentEl, a, afs, hasAfs);
 
     // Build ToC
     buildToc();
-
-    // AFS
-    const afs = a.afs || {};
-    renderTermsGroup(1, afs.relatedTermsGroup1 || [], a.id, afs);
-    renderTermsGroup(2, afs.relatedTermsGroup2 || [], a.id, afs);
 
     // Show article
     document.getElementById('article-loading').style.display = 'none';
     document.getElementById('article-body').style.display = '';
   }
 
-  // ── Terms Group + AFS Ad ──────────────────────────────────────────────────
-  function renderTermsGroup(groupNum, terms, articleId, afs) {
-    const chipsEl = document.getElementById(`terms-group-${groupNum}`);
-    const adEl    = document.getElementById(`afs-container-${groupNum}`);
+  // ── Inject AFS Slots Into Content ─────────────────────────────────────────
+  function injectAfsSlots(contentEl, article, afs, hasAfs) {
+    const paragraphs = contentEl.querySelectorAll(':scope > p');
+    if (paragraphs.length < 2) return; // not enough paragraphs to inject
 
-    // Filter out empty terms
-    const filtered = (terms || []).filter(t => t && t.trim());
+    const slot1 = document.getElementById('afs-slot-1');
+    const slot2 = document.getElementById('afs-slot-2');
 
-    if (!filtered.length) {
-      document.getElementById(`afs-section-${groupNum}`).style.display = 'none';
+    // Position slot 1: after first <p>
+    paragraphs[0].after(slot1);
+
+    // Position slot 2: before last <p>
+    paragraphs[paragraphs.length - 1].before(slot2);
+
+    if (!hasAfs) {
+      // No AFS configured — keep slots hidden (placeholder space only)
       return;
     }
 
-    // Render chips
-    chipsEl.innerHTML = filtered.map(term => `
+    // AFS is configured — render both groups
+    const sid = afs.styleId   || '';
+    const cid = afs.channelId || '';
+    const pid = afs.publisherId;
+
+    const group1 = (afs.relatedTermsGroup1 || []).filter(t => t && t.trim());
+    const group2 = (afs.relatedTermsGroup2 || []).filter(t => t && t.trim());
+
+    if (group1.length) {
+      renderTermsGroup(slot1, 'terms-group-1', 'afs-container-1', group1, article.id, pid, sid, cid);
+    }
+    if (group2.length) {
+      renderTermsGroup(slot2, 'terms-group-2', 'afs-container-2', group2, article.id, pid, sid, cid);
+    }
+  }
+
+  // ── Render a Terms Group ───────────────────────────────────────────────────
+  function renderTermsGroup(slotEl, chipsId, adId, terms, articleId, pubId, styleId, channelId) {
+    // Build URL params that carry AFS identifiers to results page
+    const baseParams = new URLSearchParams({
+      aid: articleId,
+      sid: styleId,
+      ...(channelId ? { cid: channelId } : {}),
+    });
+
+    const chipsEl = document.getElementById(chipsId);
+    chipsEl.innerHTML = terms.map(term => `
       <a class="search-chip"
-         href="results.html?q=${encodeURIComponent(term)}&aid=${encodeURIComponent(articleId)}"
+         href="results.html?q=${encodeURIComponent(term)}&${baseParams}"
          target="_self">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -114,28 +153,26 @@
         ${esc(term)}
       </a>`).join('');
 
-    // Render AFS ad for first term in group (representative query)
-    const pubId   = afs.publisherId  || '';
-    const styleId = afs.styleId      || '';
+    // Inject AFS ad using first term as representative query
+    const adEl = document.getElementById(adId);
+    adEl.classList.add('loaded');
+    injectAfsAd(adId, pubId, styleId, channelId, terms[0]);
 
-    if (pubId && styleId && filtered[0]) {
-      adEl.classList.add('loaded');
-      adEl.innerHTML = ''; // clear placeholder
-      injectAfsAd(adEl.id, pubId, styleId, filtered[0]);
-    } else {
-      adEl.textContent = '[ Google AFS 广告位 — 请在管理后台配置 Publisher ID 和 Style ID ]';
-    }
+    slotEl.style.display = '';
   }
 
   // ── Inject AFS Ad ─────────────────────────────────────────────────────────
-  function injectAfsAd(containerId, pubId, styleId, query) {
+  function injectAfsAd(containerId, pubId, styleId, channelId, query) {
     const tryLoad = () => {
-      if (window.google && window.google.ads && window.google.ads.search && window.google.ads.search.Ads) {
+      if (window.google?.ads?.search?.Ads) {
         try {
-          window.google.ads.search.Ads(
-            { pubId: pubId, styleId: styleId, query: query, hl: 'zh-CN' },
-            { container: containerId, width: '100%', number: '3' }
-          );
+          const pageOpts = { pubId, styleId, query, hl: 'en' };
+          if (channelId) pageOpts.channel = channelId;
+          window.google.ads.search.Ads(pageOpts, {
+            container: containerId,
+            width: '100%',
+            number: '3',
+          });
         } catch (e) { console.warn('AFS error:', e); }
       } else {
         setTimeout(tryLoad, 500);
@@ -146,8 +183,8 @@
 
   // ── Table of Contents ─────────────────────────────────────────────────────
   function buildToc() {
-    const content  = document.getElementById('art-content');
-    const headings = content.querySelectorAll('h1, h2, h3');
+    const contentEl = document.getElementById('art-content');
+    const headings  = contentEl.querySelectorAll('h1, h2, h3');
     if (headings.length < 2) return;
 
     const tocWidget = document.getElementById('toc-widget');
@@ -155,22 +192,19 @@
     tocWidget.style.display = '';
 
     headings.forEach((h, i) => {
-      const id  = `heading-${i}`;
-      h.id      = id;
-      const li  = document.createElement('li');
+      h.id = `heading-${i}`;
+      const li = document.createElement('li');
       li.style.paddingLeft = h.tagName === 'H3' ? '1rem' : h.tagName === 'H2' ? '.5rem' : '0';
-      li.innerHTML = `<a href="#${id}">${h.textContent}</a>`;
+      li.innerHTML = `<a href="#${h.id}">${h.textContent}</a>`;
       tocList.appendChild(li);
     });
 
-    // Active link on scroll
     const links = tocList.querySelectorAll('a');
     const observer = new IntersectionObserver(entries => {
       entries.forEach(e => {
         if (e.isIntersecting) {
           links.forEach(l => l.classList.remove('active'));
-          const link = tocList.querySelector(`a[href="#${e.target.id}"]`);
-          if (link) link.classList.add('active');
+          tocList.querySelector(`a[href="#${e.target.id}"]`)?.classList.add('active');
         }
       });
     }, { rootMargin: '-20% 0px -70% 0px' });
@@ -192,7 +226,7 @@
         .slice(0, 6);
 
       if (!articles.length) {
-        el.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;">暂无相关文章</p>';
+        el.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;">No related articles found.</p>';
         return;
       }
 
@@ -203,15 +237,9 @@
             ${a.excerpt ? `<p>${esc(a.excerpt)}</p>` : ''}
           </div>
         </div>`).join('');
-    } catch (e) {
+    } catch {
       el.innerHTML = '';
     }
-  }
-
-  // ── Show Error ────────────────────────────────────────────────────────────
-  function showError() {
-    document.getElementById('article-loading').style.display = 'none';
-    document.getElementById('article-error').style.display  = '';
   }
 
   // ── Search ────────────────────────────────────────────────────────────────
@@ -226,19 +254,43 @@
     input.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
   }
 
+  // ── Show Error ────────────────────────────────────────────────────────────
+  function showError() {
+    document.getElementById('article-loading').style.display = 'none';
+    document.getElementById('article-error').style.display  = '';
+  }
+
+  // ── Category Color ────────────────────────────────────────────────────────
+  const CAT_COLORS = {
+    'technology':  { color: '#3b82f6', bg: '#eff6ff' },
+    'programming': { color: '#8b5cf6', bg: '#f5f3ff' },
+    'health':      { color: '#10b981', bg: '#ecfdf5' },
+    'finance':     { color: '#f59e0b', bg: '#fffbeb' },
+    'career':      { color: '#ef4444', bg: '#fef2f2' },
+    'travel':      { color: '#06b6d4', bg: '#ecfeff' },
+    'food':        { color: '#f97316', bg: '#fff7ed' },
+    'science':     { color: '#6366f1', bg: '#eef2ff' },
+    'lifestyle':   { color: '#ec4899', bg: '#fdf2f8' },
+    'default':     { color: '#64748b', bg: '#f8fafc' },
+  };
+  function catStyle(name) {
+    if (!name) return CAT_COLORS.default;
+    return CAT_COLORS[name.toLowerCase().replace(/\s+/g, '')] || CAT_COLORS.default;
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
   function formatDate(iso) {
     if (!iso) return '';
     try {
-      return new Date(iso).toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'});
+      return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     } catch { return iso; }
   }
 
   function esc(str) {
     if (str == null) return '';
     return String(str)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   init();
