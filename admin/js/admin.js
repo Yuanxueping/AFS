@@ -249,8 +249,10 @@
       coverImage:document.getElementById('f-cover').value.trim(),
       tags,
       afs: {
-        styleId:   document.getElementById('f-afs-style').value.trim(),
-        channelId: document.getElementById('f-afs-channel').value.trim(),
+        styleId:         document.getElementById('f-afs-style').value.trim(),
+        channelId:       document.getElementById('f-afs-channel').value.trim(),
+        facebookPixelId: document.getElementById('f-fb-pixel').value.trim(),
+        tiktokPixelId:   document.getElementById('f-tt-pixel').value.trim(),
       }
     };
 
@@ -301,8 +303,10 @@
     document.getElementById('content-html').value    = a.content || '';
 
     const afs = a.afs || {};
-    document.getElementById('f-afs-style').value   = afs.styleId   || '';
-    document.getElementById('f-afs-channel').value = afs.channelId || '';
+    document.getElementById('f-afs-style').value   = afs.styleId         || '';
+    document.getElementById('f-afs-channel').value = afs.channelId       || '';
+    document.getElementById('f-fb-pixel').value    = afs.facebookPixelId || '';
+    document.getElementById('f-tt-pixel').value    = afs.tiktokPixelId   || '';
 
     document.getElementById('article-form-title').textContent = '编辑文章';
     document.getElementById('cancel-edit-btn').style.display  = '';

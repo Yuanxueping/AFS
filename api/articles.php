@@ -247,8 +247,10 @@ function sanitizeArticle($data, $isNew = false) {
     ];
     $incoming = $data['afs'] ?? [];
     $afs = [
-        'styleId'   => strval($incoming['styleId']   ?? ''),
-        'channelId' => strval($incoming['channelId'] ?? ''),
+        'styleId'         => strval($incoming['styleId']         ?? ''),
+        'channelId'       => strval($incoming['channelId']       ?? ''),
+        'facebookPixelId' => strval($incoming['facebookPixelId'] ?? ''),
+        'tiktokPixelId'   => strval($incoming['tiktokPixelId']   ?? ''),
     ];
 
     return [

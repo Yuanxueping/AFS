@@ -90,15 +90,18 @@
 
     // Inject AFS slots into content, then fire _googCsa if configured
     // Priority: URL param > article setting > site default
-    const urlParams = new URLSearchParams(location.search);
-    const afs       = a.afs || {};
-    const pubId     = siteConfig.afsPublisherId || '';
-    const styleId   = urlParams.get('sid') || afs.styleId   || siteConfig.defaultAfsStyleId   || '';
-    const channelId = urlParams.get('cid') || afs.channelId || siteConfig.defaultAfsChannelId || '';
+    // Priority for all IDs: URL param > article setting > site default
+    const urlParams     = new URLSearchParams(location.search);
+    const afs           = a.afs || {};
+    const pubId         = siteConfig.afsPublisherId || '';
+    const styleId       = urlParams.get('sid')   || afs.styleId         || siteConfig.defaultAfsStyleId   || '';
+    const channelId     = urlParams.get('cid')   || afs.channelId       || siteConfig.defaultAfsChannelId || '';
+    const fbPixelId     = urlParams.get('fbpx')  || afs.facebookPixelId || siteConfig.facebookPixelId     || '';
+    const ttPixelId     = urlParams.get('ttpx')  || afs.tiktokPixelId   || siteConfig.tiktokPixelId       || '';
 
-    injectAndFireAfs(contentEl, pubId, styleId, channelId, a.id);
+    injectAndFireAfs(contentEl, pubId, styleId, channelId, a.id, fbPixelId, ttPixelId);
 
-    initPixels(siteConfig);
+    initPixels(fbPixelId, ttPixelId);
 
     buildToc();
 
@@ -107,7 +110,7 @@
   }
 
   // ── Inject AFS Slots + Fire _googCsa ─────────────────────────────────────
-  function injectAndFireAfs(contentEl, pubId, styleId, channelId, articleId) {
+  function injectAndFireAfs(contentEl, pubId, styleId, channelId, articleId, fbPixelId, ttPixelId) {
     const slot1 = document.getElementById('relatedsearches1');
     const slot2 = document.getElementById('relatedsearches2');
 
@@ -131,6 +134,8 @@
     const rsParams = new URLSearchParams({ sid: styleId });
     if (channelId)  rsParams.set('cid', channelId);
     if (articleId)  rsParams.set('aid', articleId);
+    if (fbPixelId)  rsParams.set('fbpx', fbPixelId);
+    if (ttPixelId)  rsParams.set('ttpx', ttPixelId);
     const resultsPageBaseUrl = `${baseHref}results.html?${rsParams}`;
 
     // pageOptions shared by both relatedsearch blocks
@@ -240,9 +245,9 @@
   }
 
   // ── Pixel Tracking ───────────────────────────────────────────────────────
-  function initPixels(cfg) {
-    if (cfg.facebookPixelId) initFbPixel(cfg.facebookPixelId);
-    if (cfg.tiktokPixelId)   initTtPixel(cfg.tiktokPixelId);
+  function initPixels(fbId, ttId) {
+    if (fbId) initFbPixel(fbId);
+    if (ttId) initTtPixel(ttId);
   }
 
   function initFbPixel(id) {

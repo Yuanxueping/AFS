@@ -19,9 +19,11 @@
 
     // Load site config for pubId and site name
     const cfg = await loadSiteConfig();
-    const pubId = cfg.afsPublisherId || '';
+    const pubId     = cfg.afsPublisherId || '';
+    const fbPixelId = params.get('fbpx') || cfg.facebookPixelId || '';
+    const ttPixelId = params.get('ttpx') || cfg.tiktokPixelId   || '';
 
-    initPixels(cfg);
+    initPixels(fbPixelId, ttPixelId);
     if (query) pixelEvent('Search', { search_string: query });
 
     // Fire AFS ad immediately (don't wait for article fetch)
@@ -194,9 +196,9 @@
   }
 
   // ── Pixel Tracking ───────────────────────────────────────────────────────
-  function initPixels(cfg) {
-    if (cfg.facebookPixelId) initFbPixel(cfg.facebookPixelId);
-    if (cfg.tiktokPixelId)   initTtPixel(cfg.tiktokPixelId);
+  function initPixels(fbId, ttId) {
+    if (fbId) initFbPixel(fbId);
+    if (ttId) initTtPixel(ttId);
   }
 
   function initFbPixel(id) {
