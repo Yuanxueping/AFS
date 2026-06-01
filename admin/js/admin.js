@@ -240,9 +240,6 @@
 
     const tagsRaw = document.getElementById('f-tags').value;
     const tags    = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
-    const terms1  = [...document.querySelectorAll('.terms-1')].map(i => i.value.trim());
-    const terms2  = [...document.querySelectorAll('.terms-2')].map(i => i.value.trim());
-
     const payload = {
       title,
       content,
@@ -252,10 +249,8 @@
       coverImage:document.getElementById('f-cover').value.trim(),
       tags,
       afs: {
-        styleId:            document.getElementById('f-afs-style').value.trim(),
-        channelId:          document.getElementById('f-afs-channel').value.trim(),
-        relatedTermsGroup1: terms1,
-        relatedTermsGroup2: terms2,
+        styleId:   document.getElementById('f-afs-style').value.trim(),
+        channelId: document.getElementById('f-afs-channel').value.trim(),
       }
     };
 
@@ -308,11 +303,6 @@
     const afs = a.afs || {};
     document.getElementById('f-afs-style').value   = afs.styleId   || '';
     document.getElementById('f-afs-channel').value = afs.channelId || '';
-
-    const t1 = afs.relatedTermsGroup1 || [];
-    const t2 = afs.relatedTermsGroup2 || [];
-    document.querySelectorAll('.terms-1').forEach((inp, i) => { inp.value = t1[i] || ''; });
-    document.querySelectorAll('.terms-2').forEach((inp, i) => { inp.value = t2[i] || ''; });
 
     document.getElementById('article-form-title').textContent = '编辑文章';
     document.getElementById('cancel-edit-btn').style.display  = '';
