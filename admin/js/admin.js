@@ -343,6 +343,9 @@
     const htmlBtn  = document.getElementById('html-mode-btn');
 
     document.querySelectorAll('.toolbar-btn[data-cmd]').forEach(btn => {
+      // Prevent mousedown from stealing focus — keeps editor selection intact
+      btn.addEventListener('mousedown', e => e.preventDefault());
+
       btn.addEventListener('click', () => {
         const cmd = btn.dataset.cmd;
 
@@ -363,6 +366,8 @@
         }
 
         if (cmd === 'embedHtml') {
+          // Editor still has focus (mousedown prevented steal), save selection now
+          saveSelection();
           openEmbedModal();
           return;
         }
@@ -404,10 +409,8 @@
       }
     });
 
-    // Save cursor position whenever editor loses focus (before modal opens)
+    // Sync content when editor loses focus
     editor.addEventListener('blur', () => {
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
       if (!htmlMode) htmlArea.value = getEditorContent();
     });
   }
