@@ -157,7 +157,7 @@
     }
 
     tbody.innerHTML = articles.map(a => {
-      const hasAfs = !!(a.afs && a.afs.publisherId && a.afs.publisherId !== 'pub-XXXXXXXXXXXXXXXX');
+      const hasAfs = !!(a.afs && a.afs.styleId);
       const tags   = (a.tags || []).slice(0, 3).map(t =>
         `<span class="badge badge-blue" style="font-size:.68rem;">${esc(t)}</span>`).join(' ');
 

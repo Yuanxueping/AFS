@@ -91,8 +91,8 @@
     // Inject AFS slots into content, then fire _googCsa if configured
     const afs      = a.afs || {};
     const pubId    = siteConfig.afsPublisherId || '';
-    const styleId  = afs.styleId  || '';
-    const channelId = afs.channelId || '';
+    const styleId  = afs.styleId  || siteConfig.defaultAfsStyleId  || '';
+    const channelId = afs.channelId || siteConfig.defaultAfsChannelId || '';
 
     injectAndFireAfs(contentEl, pubId, styleId, channelId);
 
