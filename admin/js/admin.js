@@ -438,31 +438,40 @@
     });
   }
 
-  // Clean pasted HTML: replace div/span block wrappers with <p>
+  // Clean pasted HTML: normalize structure while preserving semantic tags
   function cleanPastedHtml(html) {
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
 
-    // Remove Word/Google Docs meta tags
+    // Remove Word/Google Docs meta junk
     tmp.querySelectorAll('meta, style, script, link, xml').forEach(el => el.remove());
 
-    // Replace block-level divs with p
+    const BLOCK_TAGS = new Set(['H1','H2','H3','H4','H5','H6','UL','OL','LI',
+                                 'BLOCKQUOTE','PRE','TABLE','FIGURE','HR']);
+
+    // Handle divs: if the div contains block-level semantic elements, unwrap it;
+    // otherwise treat it as a paragraph
     tmp.querySelectorAll('div').forEach(div => {
-      const p = document.createElement('p');
-      p.innerHTML = div.innerHTML;
-      div.replaceWith(p);
+      const hasBlock = [...div.children].some(c => BLOCK_TAGS.has(c.tagName));
+      if (hasBlock) {
+        // Unwrap: replace div with its children
+        div.replaceWith(...div.childNodes);
+      } else {
+        const p = document.createElement('p');
+        p.innerHTML = div.innerHTML;
+        div.replaceWith(p);
+      }
     });
 
-    // Unwrap meaningless spans (no meaningful attributes)
+    // Unwrap meaningless spans (keep those with bold/italic/underline styles)
     tmp.querySelectorAll('span').forEach(span => {
       const style = span.getAttribute('style') || '';
-      // Keep spans that carry bold/italic/underline via style, unwrap the rest
       if (!style.match(/font-weight|font-style|text-decoration/)) {
         span.replaceWith(...span.childNodes);
       }
     });
 
-    // Remove empty paragraphs
+    // Remove empty paragraphs (but leave empty li/heading alone)
     tmp.querySelectorAll('p').forEach(p => {
       if (!p.textContent.trim() && !p.querySelector('img,br')) p.remove();
     });
