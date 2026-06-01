@@ -114,53 +114,52 @@
   // ── Related Articles ──────────────────────────────────────────────────────
   async function loadRelatedArticles(sourceArticle, query) {
     const el = document.getElementById('related-articles-main');
-    try {
-      // Try category match first, then keyword search, then fall back to all recent articles
-      const fetchArticles = async (params) => {
+
+    const safeFetch = async (params) => {
+      try {
         const res  = await fetch(`${API}?${params}`);
         const data = await res.json();
-        let list = data.articles || [];
+        let list = (data.articles || []);
         if (sourceArticle) list = list.filter(a => a.id !== sourceArticle.id);
         return list;
-      };
+      } catch { return []; }
+    };
 
-      let articles = [];
-      if (sourceArticle?.category) {
-        articles = await fetchArticles(new URLSearchParams({ page: 1, limit: 20, category: sourceArticle.category }));
-      }
-      if (!articles.length && query) {
-        articles = await fetchArticles(new URLSearchParams({ page: 1, limit: 20, search: query }));
-      }
-      if (!articles.length) {
-        articles = await fetchArticles(new URLSearchParams({ page: 1, limit: 20 }));
-      }
-
-      const subtitleEl = document.getElementById('results-subtitle');
-
-      if (!articles.length) {
-        el.innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;padding:.75rem 0;">No articles found.</p>';
-        if (subtitleEl) subtitleEl.textContent = '';
-        return;
-      }
-
-      if (subtitleEl) subtitleEl.textContent =
-        `${articles.length} related article${articles.length !== 1 ? 's' : ''} found`;
-
-      el.innerHTML = articles.slice(0, 10).map((a, i) => `
-        <div class="related-article-item">
-          <span class="related-article-num">${String(i + 1).padStart(2, '0')}</span>
-          <div class="related-article-info">
-            <h4><a href="article.html?id=${esc(a.id)}">${esc(a.title)}</a></h4>
-            ${a.excerpt ? `<p>${esc(a.excerpt)}</p>` : ''}
-            <div style="margin-top:.3rem;">
-              ${a.category ? `<span class="badge" style="--cat-color:#3b82f6;--cat-bg:#eff6ff;">${esc(a.category)}</span>` : ''}
-              <span style="font-size:.75rem;color:var(--text-light);margin-left:.4rem;">${formatDate(a.createdAt)}</span>
-            </div>
-          </div>
-        </div>`).join('');
-    } catch {
-      el.innerHTML = '<p style="color:var(--text-muted);">Failed to load articles.</p>';
+    // Try category match first, then keyword search, then all recent articles
+    let articles = [];
+    if (sourceArticle?.category) {
+      articles = await safeFetch(new URLSearchParams({ page: 1, limit: 20, category: sourceArticle.category }));
     }
+    if (!articles.length && query) {
+      articles = await safeFetch(new URLSearchParams({ page: 1, limit: 20, search: query }));
+    }
+    if (!articles.length) {
+      articles = await safeFetch(new URLSearchParams({ page: 1, limit: 20 }));
+    }
+
+    const subtitleEl = document.getElementById('results-subtitle');
+
+    if (!articles.length) {
+      el.innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;padding:.75rem 0;">No articles found.</p>';
+      if (subtitleEl) subtitleEl.textContent = '';
+      return;
+    }
+
+    if (subtitleEl) subtitleEl.textContent =
+      `${articles.length} related article${articles.length !== 1 ? 's' : ''} found`;
+
+    el.innerHTML = articles.slice(0, 10).map((a, i) => `
+      <div class="related-article-item">
+        <span class="related-article-num">${String(i + 1).padStart(2, '0')}</span>
+        <div class="related-article-info">
+          <h4><a href="article.html?id=${esc(a.id)}">${esc(a.title)}</a></h4>
+          ${a.excerpt ? `<p>${esc(a.excerpt)}</p>` : ''}
+          <div style="margin-top:.3rem;">
+            ${a.category ? `<span class="badge" style="--cat-color:#3b82f6;--cat-bg:#eff6ff;">${esc(a.category)}</span>` : ''}
+            <span style="font-size:.75rem;color:var(--text-light);margin-left:.4rem;">${formatDate(a.createdAt)}</span>
+          </div>
+        </div>
+      </div>`).join('');
   }
 
   // ── Sidebar: More Terms ───────────────────────────────────────────────────
