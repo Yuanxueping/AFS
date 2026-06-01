@@ -404,8 +404,10 @@
       }
     });
 
-    // Sync on tab-away
+    // Save cursor position whenever editor loses focus (before modal opens)
     editor.addEventListener('blur', () => {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
       if (!htmlMode) htmlArea.value = getEditorContent();
     });
   }
@@ -441,7 +443,6 @@
   }
 
   function openEmbedModal() {
-    if (!htmlMode) saveSelection();
     const modal = document.getElementById('embed-modal');
     const input = document.getElementById('embed-html-input');
     input.value = '';
