@@ -243,16 +243,15 @@ tr:hover td { background: var(--bg-alt); }
 .table-title { font-weight: 500; }
 .table-title a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .table-title small { display: block; color: var(--text-muted); font-size: .75rem; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.actions { display: flex; gap: .4rem; white-space: nowrap; justify-content: flex-end; align-items: center; }
+.actions { display: flex; gap: .4rem; align-items: center; justify-content: flex-end; }
 
-/* Fixed column widths to keep header and cells aligned */
-#articles-table { table-layout: fixed; width: 100%; }
-#articles-table th:nth-child(1), #articles-table td:nth-child(1) { width: 34%; overflow: hidden; }
-#articles-table th:nth-child(2), #articles-table td:nth-child(2) { width: 9%; overflow: hidden; }
-#articles-table th:nth-child(3), #articles-table td:nth-child(3) { width: 20%; }
-#articles-table th:nth-child(4), #articles-table td:nth-child(4) { width: 9%; white-space: nowrap; }
-#articles-table th:nth-child(5), #articles-table td:nth-child(5) { width: 8%; }
-#articles-table th:nth-child(6), #articles-table td:nth-child(6) { width: 10%; text-align: right; }
+/* Column widths: let browser auto-layout, pin non-title columns to their content */
+#articles-table { width: 100%; }
+#articles-table th:nth-child(2), #articles-table td:nth-child(2) { width: 110px; white-space: nowrap; }
+#articles-table th:nth-child(3), #articles-table td:nth-child(3) { width: 18%; }
+#articles-table th:nth-child(4), #articles-table td:nth-child(4) { width: 90px; white-space: nowrap; }
+#articles-table th:nth-child(5), #articles-table td:nth-child(5) { width: 80px; white-space: nowrap; }
+#articles-table th:nth-child(6), #articles-table td:nth-child(6) { width: 1%; white-space: nowrap; }
 
 /* ── Forms ───────────────────────────────────────────────────────────────── */
 .form-grid {
