@@ -89,10 +89,12 @@
     contentEl.innerHTML = a.content || '';
 
     // Inject AFS slots into content, then fire _googCsa if configured
+    // Priority: URL param > article setting > site default
+    const urlParams = new URLSearchParams(location.search);
     const afs      = a.afs || {};
     const pubId    = siteConfig.afsPublisherId || '';
-    const styleId  = afs.styleId  || siteConfig.defaultAfsStyleId  || '';
-    const channelId = afs.channelId || siteConfig.defaultAfsChannelId || '';
+    const styleId  = urlParams.get('sid') || afs.styleId  || siteConfig.defaultAfsStyleId  || '';
+    const channelId = urlParams.get('cid') || afs.channelId || siteConfig.defaultAfsChannelId || '';
 
     injectAndFireAfs(contentEl, pubId, styleId, channelId);
 
