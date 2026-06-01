@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/admin.css">
+  <link rel="stylesheet" href="../css/admin.css?v=4">
 </head>
 <body>
 
@@ -209,8 +209,12 @@
                       <button type="button" class="toolbar-btn" data-cmd="createLink">链接</button>
                       <button type="button" class="toolbar-btn" data-cmd="insertImage">图片</button>
                       <div class="toolbar-sep"></div>
+                      <button type="button" class="toolbar-btn" data-cmd="inlineCode">代码</button>
+                      <button type="button" class="toolbar-btn" data-cmd="codeBlock">代码块</button>
+                      <button type="button" class="toolbar-btn toolbar-btn-embed" data-cmd="embedHtml">嵌入HTML</button>
+                      <div class="toolbar-sep"></div>
                       <button type="button" class="toolbar-btn" data-cmd="removeFormat">清除格式</button>
-                      <button type="button" class="toolbar-btn" data-cmd="html">HTML模式</button>
+                      <button type="button" class="toolbar-btn" data-cmd="html" id="html-mode-btn">HTML模式</button>
                     </div>
                     <div id="content-editor"
                          contenteditable="true"
@@ -409,6 +413,24 @@
 <!-- ── Toast Container ────────────────────────────────────────────────────── -->
 <div id="toaster"></div>
 
-<script src="js/admin.js?v=3"></script>
+<!-- ── Embed HTML Modal ────────────────────────────────────────────────────── -->
+<div id="embed-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>嵌入 HTML 代码块</h3>
+      <button type="button" class="modal-close" id="embed-modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-hint">粘贴 iframe、script 或任意 HTML 片段，保存后将原样嵌入文章。</p>
+      <textarea id="embed-html-input" placeholder="粘贴 HTML 代码…" spellcheck="false"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="embed-modal-cancel">取消</button>
+      <button type="button" class="btn btn-primary" id="embed-modal-insert">插入</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.js?v=4"></script>
 </body>
 </html>

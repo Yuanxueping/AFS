@@ -59,6 +59,7 @@
     await loadSiteConfig();
     setupNav();
     setupEditorToolbar();
+    setupEmbedModal();
     setupArticleForm();
     setupImport();
     setupSettings();
@@ -228,8 +229,7 @@
   async function saveArticle() {
     // Sync editor content
     if (!htmlMode) {
-      document.getElementById('content-html').value =
-        document.getElementById('content-editor').innerHTML;
+      document.getElementById('content-html').value = getEditorContent();
     }
 
     const title   = document.getElementById('f-title').value.trim();
@@ -340,29 +340,35 @@
   function setupEditorToolbar() {
     const editor   = document.getElementById('content-editor');
     const htmlArea = document.getElementById('content-html');
+    const htmlBtn  = document.getElementById('html-mode-btn');
 
     document.querySelectorAll('.toolbar-btn[data-cmd]').forEach(btn => {
       btn.addEventListener('click', () => {
         const cmd = btn.dataset.cmd;
-        editor.focus();
 
         if (cmd === 'html') {
           htmlMode = !htmlMode;
           if (htmlMode) {
-            htmlArea.value = editor.innerHTML;
+            htmlArea.value = getEditorContent();
             editor.style.display = 'none';
             htmlArea.style.display = '';
-            btn.textContent = '可视模式';
+            htmlBtn.textContent = '可视模式';
           } else {
             editor.innerHTML = htmlArea.value;
             editor.style.display = '';
             htmlArea.style.display = 'none';
-            btn.textContent = 'HTML模式';
+            htmlBtn.textContent = 'HTML模式';
           }
           return;
         }
 
+        if (cmd === 'embedHtml') {
+          openEmbedModal();
+          return;
+        }
+
         if (htmlMode) return;
+        editor.focus();
 
         if (cmd === 'h2') {
           document.execCommand('formatBlock', false, 'H2');
@@ -370,6 +376,12 @@
           document.execCommand('formatBlock', false, 'H3');
         } else if (cmd === 'blockquote') {
           document.execCommand('formatBlock', false, 'BLOCKQUOTE');
+        } else if (cmd === 'inlineCode') {
+          const sel = window.getSelection();
+          const text = sel && sel.toString() ? sel.toString() : '';
+          document.execCommand('insertHTML', false, `<code>${text || '代码'}</code>`);
+        } else if (cmd === 'codeBlock') {
+          document.execCommand('insertHTML', false, '<pre><code>代码块</code></pre><p><br></p>');
         } else if (cmd === 'createLink') {
           const url = prompt('输入链接 URL：', 'https://');
           if (url) document.execCommand('createLink', false, url);
@@ -382,9 +394,87 @@
       });
     });
 
+    // Tab key in HTML textarea
+    htmlArea.addEventListener('keydown', e => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = htmlArea.selectionStart, end = htmlArea.selectionEnd;
+        htmlArea.value = htmlArea.value.substring(0, s) + '  ' + htmlArea.value.substring(end);
+        htmlArea.selectionStart = htmlArea.selectionEnd = s + 2;
+      }
+    });
+
     // Sync on tab-away
     editor.addEventListener('blur', () => {
-      if (!htmlMode) htmlArea.value = editor.innerHTML;
+      if (!htmlMode) htmlArea.value = getEditorContent();
+    });
+  }
+
+  // Extract final HTML — replace embed placeholders with their raw HTML
+  function getEditorContent() {
+    const editor = document.getElementById('content-editor');
+    const clone  = editor.cloneNode(true);
+    clone.querySelectorAll('.html-embed-block').forEach(el => {
+      const raw = el.getAttribute('data-html') || '';
+      const placeholder = document.createElement('div');
+      placeholder.innerHTML = raw;
+      el.replaceWith(...placeholder.childNodes);
+    });
+    return clone.innerHTML;
+  }
+
+  // ── Embed HTML Modal ──────────────────────────────────────────────────────
+  function openEmbedModal() {
+    const modal = document.getElementById('embed-modal');
+    const input = document.getElementById('embed-html-input');
+    input.value = '';
+    modal.style.display = 'flex';
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function closeEmbedModal() {
+    document.getElementById('embed-modal').style.display = 'none';
+  }
+
+  function insertEmbedHtml() {
+    const input = document.getElementById('embed-html-input');
+    const raw   = input.value.trim();
+    if (!raw) { closeEmbedModal(); return; }
+
+    closeEmbedModal();
+
+    if (htmlMode) {
+      const htmlArea = document.getElementById('content-html');
+      const s = htmlArea.selectionStart;
+      htmlArea.value = htmlArea.value.substring(0, s) + '\n' + raw + '\n' + htmlArea.value.substring(htmlArea.selectionEnd);
+      htmlArea.selectionStart = htmlArea.selectionEnd = s + raw.length + 2;
+      htmlArea.focus();
+    } else {
+      const editor = document.getElementById('content-editor');
+      editor.focus();
+      // Show a labeled, non-editable placeholder block in visual mode
+      const label = raw.startsWith('<iframe') ? 'iframe 嵌入' :
+                    raw.startsWith('<script') ? 'Script 嵌入' : 'HTML 代码块';
+      const escaped = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      const block = `<div class="html-embed-block" contenteditable="false" data-html="${escaped}"><span class="embed-label">📎 ${label}</span><pre class="embed-preview">${escaped.substring(0, 120)}${escaped.length > 120 ? '…' : ''}</pre></div><p><br></p>`;
+      document.execCommand('insertHTML', false, block);
+    }
+  }
+
+  function setupEmbedModal() {
+    document.getElementById('embed-modal-close').addEventListener('click', closeEmbedModal);
+    document.getElementById('embed-modal-cancel').addEventListener('click', closeEmbedModal);
+    document.getElementById('embed-modal-insert').addEventListener('click', insertEmbedHtml);
+    document.getElementById('embed-modal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeEmbedModal();
+    });
+    document.getElementById('embed-html-input').addEventListener('keydown', e => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = e.target.selectionStart, end = e.target.selectionEnd;
+        e.target.value = e.target.value.substring(0, s) + '  ' + e.target.value.substring(end);
+        e.target.selectionStart = e.target.selectionEnd = s + 2;
+      }
     });
   }
 
