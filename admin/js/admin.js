@@ -424,7 +424,24 @@
   }
 
   // ── Embed HTML Modal ──────────────────────────────────────────────────────
+  let savedRange = null;
+
+  function saveSelection() {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
+  }
+
+  function restoreSelection() {
+    const editor = document.getElementById('content-editor');
+    editor.focus();
+    if (!savedRange) return;
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRange);
+  }
+
   function openEmbedModal() {
+    if (!htmlMode) saveSelection();
     const modal = document.getElementById('embed-modal');
     const input = document.getElementById('embed-html-input');
     input.value = '';
@@ -450,8 +467,7 @@
       htmlArea.selectionStart = htmlArea.selectionEnd = s + raw.length + 2;
       htmlArea.focus();
     } else {
-      const editor = document.getElementById('content-editor');
-      editor.focus();
+      restoreSelection();
       // Show a labeled, non-editable placeholder block in visual mode
       const label = raw.startsWith('<iframe') ? 'iframe 嵌入' :
                     raw.startsWith('<script') ? 'Script 嵌入' : 'HTML 代码块';
