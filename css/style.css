@@ -1139,3 +1139,72 @@ img { max-width: 100%; height: auto; }
 
 /* ── Utility ──────────────────────────────────────────────────────────────── */
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+/* ── Mobile Responsive ────────────────────────────────────────────────────── */
+
+/* Header: prevent overflow on narrow screens */
+@media (max-width: 640px) {
+  .header-inner { gap: .65rem; height: 60px; }
+  .site-logo { font-size: 1rem; }
+  .logo-icon { font-size: 1.2rem; }
+  .logo-text { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .header-search-compact { min-width: 0; }
+  .search-box-compact { padding: .3rem .3rem .3rem .65rem; }
+  .search-box-compact button { padding: .3rem .65rem; font-size: .75rem; }
+}
+
+/* Article page: prevent content overflow */
+.article-content {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.article-content table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.article-content img { max-width: 100%; height: auto; display: block; }
+
+/* AFS iframe slots must not overflow */
+.afs-rs-slot { max-width: 100%; overflow: hidden; }
+.afs-rs-slot iframe { max-width: 100% !important; }
+
+/* Results page: compact on mobile */
+@media (max-width: 640px) {
+  .results-query { font-size: 1.2rem; }
+  .results-header { padding: 1.25rem 0 1rem; }
+  .results-ad-section { padding: .85rem; }
+}
+
+/* Article layout: sidebar stacks below content on tablet/mobile */
+@media (max-width: 900px) {
+  .article-sidebar { margin-top: 1rem; }
+  .article-sidebar > * { position: static; }
+}
+
+/* Container: tighter horizontal padding on small screens */
+@media (max-width: 480px) {
+  .container { padding: 0 1rem; }
+  .article-back-wrap { padding: .85rem 0 .1rem; }
+  .article-title { font-size: 1.35rem; }
+  .card-body { padding: 1rem; }
+}
+
+/* Hero banner: reduce padding on very small screens */
+@media (max-width: 480px) {
+  .hero-banner { padding: 2.5rem 0 2rem; }
+  .hero-title { font-size: 1.75rem; }
+  .hero-subtitle { font-size: .95rem; margin-bottom: 1.5rem; }
+  .hero-stats { gap: .5rem; }
+  .stat-card { padding: .75rem 1rem; }
+  .stat-num { font-size: 1.75rem; }
+}
+
+/* Category bar: always scrollable, no wrap */
+.category-bar { flex-wrap: nowrap; }
+
+/* Footer: single column on small screens */
+@media (max-width: 480px) {
+  .footer-grid { grid-template-columns: 1fr; gap: 1.25rem; padding-bottom: 2rem; }
+}
+
