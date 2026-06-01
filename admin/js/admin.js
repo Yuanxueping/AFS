@@ -413,6 +413,61 @@
     editor.addEventListener('blur', () => {
       if (!htmlMode) htmlArea.value = getEditorContent();
     });
+
+    // Normalize paste: strip outer divs/spans, keep semantic tags, wrap bare text in <p>
+    editor.addEventListener('paste', e => {
+      e.preventDefault();
+      let html = e.clipboardData.getData('text/html');
+      if (html) {
+        html = cleanPastedHtml(html);
+      } else {
+        const text = e.clipboardData.getData('text/plain');
+        html = text.split(/\n{2,}/).map(para =>
+          `<p>${para.replace(/\n/g, '<br>').trim()}</p>`
+        ).filter(p => p !== '<p></p>').join('');
+      }
+      document.execCommand('insertHTML', false, html);
+    });
+
+    // Enter key: always insert <p> not <div>
+    editor.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.execCommand('insertHTML', false, '</p><p><br></p>');
+      }
+    });
+  }
+
+  // Clean pasted HTML: replace div/span block wrappers with <p>
+  function cleanPastedHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+
+    // Remove Word/Google Docs meta tags
+    tmp.querySelectorAll('meta, style, script, link, xml').forEach(el => el.remove());
+
+    // Replace block-level divs with p
+    tmp.querySelectorAll('div').forEach(div => {
+      const p = document.createElement('p');
+      p.innerHTML = div.innerHTML;
+      div.replaceWith(p);
+    });
+
+    // Unwrap meaningless spans (no meaningful attributes)
+    tmp.querySelectorAll('span').forEach(span => {
+      const style = span.getAttribute('style') || '';
+      // Keep spans that carry bold/italic/underline via style, unwrap the rest
+      if (!style.match(/font-weight|font-style|text-decoration/)) {
+        span.replaceWith(...span.childNodes);
+      }
+    });
+
+    // Remove empty paragraphs
+    tmp.querySelectorAll('p').forEach(p => {
+      if (!p.textContent.trim() && !p.querySelector('img,br')) p.remove();
+    });
+
+    return tmp.innerHTML;
   }
 
   // Extract final HTML — replace embed placeholders with their raw HTML
