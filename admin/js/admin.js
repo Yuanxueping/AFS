@@ -173,9 +173,9 @@
         <td>${hasAfs
           ? '<span class="badge badge-green">已配置</span>'
           : '<span class="badge" style="background:var(--bg-alt);color:var(--text-muted);">未配置</span>'}</td>
-        <td class="td-actions">
+        <td style="width:1%;white-space:nowrap;text-align:right;vertical-align:middle;padding:.75rem .9rem;">
           <button class="btn btn-outline btn-sm" onclick="adminActions.editArticle('${esc(a.id)}')">编辑</button>
-          <button class="btn btn-danger btn-sm" onclick="adminActions.deleteArticle('${esc(a.id)}', '${esc(a.title)}')">删除</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:.3rem;" onclick="adminActions.deleteArticle('${esc(a.id)}', '${esc(a.title)}')">删除</button>
         </td>
       </tr>`;
     }).join('');
