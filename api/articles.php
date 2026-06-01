@@ -24,7 +24,7 @@ if ($action === 'config') {
 
         $config = getSiteConfig();
         $allowed = ['siteName','siteDescription','siteUrl','logo',
-                    'defaultAfsPublisherId','defaultAfsStyleId','articlesPerPage'];
+                    'afsPublisherId','defaultAfsStyleId','defaultAfsChannelId','articlesPerPage'];
         foreach ($allowed as $key) {
             if (isset($data[$key])) { $config[$key] = $data[$key]; }
         }
@@ -241,19 +241,14 @@ function generateSlug($title) {
 function sanitizeArticle($data, $isNew = false) {
     $now = gmdate('Y-m-d\TH:i:s\Z');
     $afsDefaults = [
-        'publisherId'       => '',
-        'styleId'           => '',
-        'relatedTermsGroup1'=> ['','','','',''],
-        'relatedTermsGroup2'=> ['','','','',''],
-        'resultsPageAdUnit' => '',
+        'styleId'   => '',
+        'channelId' => '',
     ];
-    $afs = array_merge($afsDefaults, $data['afs'] ?? []);
-
-    // Ensure exactly 5 terms per group
-    foreach (['relatedTermsGroup1','relatedTermsGroup2'] as $grp) {
-        $terms = array_values(array_pad((array)($afs[$grp] ?? []), 5, ''));
-        $afs[$grp] = array_slice($terms, 0, 5);
-    }
+    $incoming = $data['afs'] ?? [];
+    $afs = [
+        'styleId'   => strval($incoming['styleId']   ?? ''),
+        'channelId' => strval($incoming['channelId'] ?? ''),
+    ];
 
     return [
         'id'          => $data['id']        ?? generateUuid(),
