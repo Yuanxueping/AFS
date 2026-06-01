@@ -438,23 +438,36 @@
     });
   }
 
-  // Clean pasted HTML: normalize structure while preserving semantic tags
+  // Clean pasted HTML: keep only semantic structure, strip all inline styles
   function cleanPastedHtml(html) {
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
 
-    // Remove Word/Google Docs meta junk
-    tmp.querySelectorAll('meta, style, script, link, xml').forEach(el => el.remove());
+    // Remove junk elements entirely
+    tmp.querySelectorAll('meta,style,script,link,xml,head,[class*="Apple-"],o\\:p')
+       .forEach(el => el.remove());
 
-    const BLOCK_TAGS = new Set(['H1','H2','H3','H4','H5','H6','UL','OL','LI',
-                                 'BLOCKQUOTE','PRE','TABLE','FIGURE','HR']);
+    // Strip ALL inline styles and class/id attributes from every element
+    tmp.querySelectorAll('[style],[class],[id]').forEach(el => {
+      el.removeAttribute('style');
+      el.removeAttribute('class');
+      // keep id only on headings (for TOC anchors)
+      if (!el.tagName.match(/^H[1-6]$/)) el.removeAttribute('id');
+    });
 
-    // Handle divs: if the div contains block-level semantic elements, unwrap it;
-    // otherwise treat it as a paragraph
-    tmp.querySelectorAll('div').forEach(div => {
-      const hasBlock = [...div.children].some(c => BLOCK_TAGS.has(c.tagName));
+    const BLOCK = new Set(['H1','H2','H3','H4','H5','H6','UL','OL','LI',
+                           'BLOCKQUOTE','PRE','TABLE','TR','TD','TH','FIGURE','HR']);
+
+    // Unwrap ALL spans — they carry no semantic meaning after styles are stripped
+    tmp.querySelectorAll('span').forEach(span => {
+      span.replaceWith(...span.childNodes);
+    });
+
+    // Handle divs: unwrap if they contain block elements, else convert to <p>
+    // Process from deepest to shallowest to avoid double-processing
+    [...tmp.querySelectorAll('div')].reverse().forEach(div => {
+      const hasBlock = [...div.children].some(c => BLOCK.has(c.tagName));
       if (hasBlock) {
-        // Unwrap: replace div with its children
         div.replaceWith(...div.childNodes);
       } else {
         const p = document.createElement('p');
@@ -463,15 +476,10 @@
       }
     });
 
-    // Unwrap meaningless spans (keep those with bold/italic/underline styles)
-    tmp.querySelectorAll('span').forEach(span => {
-      const style = span.getAttribute('style') || '';
-      if (!style.match(/font-weight|font-style|text-decoration/)) {
-        span.replaceWith(...span.childNodes);
-      }
-    });
+    // Strip inline styles that crept in via allowed elements (p, h2, li…)
+    tmp.querySelectorAll('[style]').forEach(el => el.removeAttribute('style'));
 
-    // Remove empty paragraphs (but leave empty li/heading alone)
+    // Remove empty paragraphs
     tmp.querySelectorAll('p').forEach(p => {
       if (!p.textContent.trim() && !p.querySelector('img,br')) p.remove();
     });
