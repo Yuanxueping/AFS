@@ -24,7 +24,8 @@ if ($action === 'config') {
 
         $config = getSiteConfig();
         $allowed = ['siteName','siteDescription','siteUrl','logo',
-                    'afsPublisherId','defaultAfsStyleId','defaultAfsChannelId','articlesPerPage'];
+                    'afsPublisherId','defaultAfsStyleId','defaultAfsChannelId',
+                    'facebookPixelId','tiktokPixelId','articlesPerPage'];
         foreach ($allowed as $key) {
             if (isset($data[$key])) { $config[$key] = $data[$key]; }
         }

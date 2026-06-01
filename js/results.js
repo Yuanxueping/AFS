@@ -21,6 +21,9 @@
     const cfg = await loadSiteConfig();
     const pubId = cfg.afsPublisherId || '';
 
+    initPixels(cfg);
+    if (query) pixelEvent('Search', { search_string: query });
+
     // Fire AFS ad immediately (don't wait for article fetch)
     fireAfsAd(pubId, styleId, channelId, query);
 
@@ -66,12 +69,22 @@
       query,
       styleId,
       adsafe: 'low',
+      adType: 'text',
       resultsPageBaseUrl,
       resultsPageQueryParam: 'q',
     };
     if (channelId) pageOptions.channel = channelId;
 
-    _googCsa('ads', pageOptions, { container: 'afscontainer1' });
+    _googCsa('ads', pageOptions, { container: 'afscontainer1', number: 3, width: '100%' });
+
+    // Pixel: detect ad click via window focus loss
+    var adClicked = false;
+    window.addEventListener('blur', function onAdBlur() {
+      if (adClicked) return;
+      adClicked = true;
+      window.removeEventListener('blur', onAdBlur);
+      pixelEvent('Lead', { search_string: query });
+    });
   }
 
   // ── Site Config ───────────────────────────────────────────────────────────
@@ -100,22 +113,30 @@
   async function loadRelatedArticles(sourceArticle, query) {
     const el = document.getElementById('related-articles-main');
     try {
-      const params = new URLSearchParams({ page: 1, limit: 20 });
-      if (sourceArticle?.category) {
-        params.set('category', sourceArticle.category);
-      } else if (query) {
-        params.set('search', query);
-      }
+      // Try category match first, then keyword search, then fall back to all recent articles
+      const fetchArticles = async (params) => {
+        const res  = await fetch(`${API}?${params}`);
+        const data = await res.json();
+        let list = data.articles || [];
+        if (sourceArticle) list = list.filter(a => a.id !== sourceArticle.id);
+        return list;
+      };
 
-      const res  = await fetch(`${API}?${params}`);
-      const data = await res.json();
-      let articles = (data.articles || []);
-      if (sourceArticle) articles = articles.filter(a => a.id !== sourceArticle.id);
+      let articles = [];
+      if (sourceArticle?.category) {
+        articles = await fetchArticles(new URLSearchParams({ page: 1, limit: 20, category: sourceArticle.category }));
+      }
+      if (!articles.length && query) {
+        articles = await fetchArticles(new URLSearchParams({ page: 1, limit: 20, search: query }));
+      }
+      if (!articles.length) {
+        articles = await fetchArticles(new URLSearchParams({ page: 1, limit: 20 }));
+      }
 
       const subtitleEl = document.getElementById('results-subtitle');
 
       if (!articles.length) {
-        el.innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;padding:.75rem 0;">No related articles found.</p>';
+        el.innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;padding:.75rem 0;">No articles found.</p>';
         if (subtitleEl) subtitleEl.textContent = '';
         return;
       }
@@ -170,6 +191,33 @@
         </svg>
         ${esc(term)}
       </a>`).join('');
+  }
+
+  // ── Pixel Tracking ───────────────────────────────────────────────────────
+  function initPixels(cfg) {
+    if (cfg.facebookPixelId) initFbPixel(cfg.facebookPixelId);
+    if (cfg.tiktokPixelId)   initTtPixel(cfg.tiktokPixelId);
+  }
+
+  function initFbPixel(id) {
+    if (window.fbq) return;
+    /* eslint-disable */
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    /* eslint-enable */
+    fbq('init', id);
+    fbq('track', 'PageView');
+  }
+
+  function initTtPixel(id) {
+    if (window.ttq) return;
+    /* eslint-disable */
+    !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=d.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=d.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load(id);ttq.page()}(window,document,'ttq');
+    /* eslint-enable */
+  }
+
+  function pixelEvent(name, data) {
+    try { if (window.fbq) fbq('track', name, data || {}); } catch(e) {}
+    try { if (window.ttq) ttq.track(name, data || {}); } catch(e) {}
   }
 
   // ── Search ────────────────────────────────────────────────────────────────

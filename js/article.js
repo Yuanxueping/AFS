@@ -91,12 +91,14 @@
     // Inject AFS slots into content, then fire _googCsa if configured
     // Priority: URL param > article setting > site default
     const urlParams = new URLSearchParams(location.search);
-    const afs      = a.afs || {};
-    const pubId    = siteConfig.afsPublisherId || '';
-    const styleId  = urlParams.get('sid') || afs.styleId  || siteConfig.defaultAfsStyleId  || '';
+    const afs       = a.afs || {};
+    const pubId     = siteConfig.afsPublisherId || '';
+    const styleId   = urlParams.get('sid') || afs.styleId   || siteConfig.defaultAfsStyleId   || '';
     const channelId = urlParams.get('cid') || afs.channelId || siteConfig.defaultAfsChannelId || '';
 
-    injectAndFireAfs(contentEl, pubId, styleId, channelId);
+    injectAndFireAfs(contentEl, pubId, styleId, channelId, a.id);
+
+    initPixels(siteConfig);
 
     buildToc();
 
@@ -105,7 +107,7 @@
   }
 
   // ── Inject AFS Slots + Fire _googCsa ─────────────────────────────────────
-  function injectAndFireAfs(contentEl, pubId, styleId, channelId) {
+  function injectAndFireAfs(contentEl, pubId, styleId, channelId, articleId) {
     const slot1 = document.getElementById('relatedsearches1');
     const slot2 = document.getElementById('relatedsearches2');
 
@@ -123,11 +125,12 @@
     slot1.style.display = '';
     slot2.style.display = '';
 
-    // Build resultsPageBaseUrl — carries styleId and channelId so the
-    // results page knows which IDs to use without an extra API lookup.
+    // Build resultsPageBaseUrl — carries styleId, channelId and articleId
+    // so the results page can load related articles and fire AFS ads correctly.
     const baseHref = window.location.href.replace(/\/[^/]*(\?.*)?$/, '/');
     const rsParams = new URLSearchParams({ sid: styleId });
-    if (channelId) rsParams.set('cid', channelId);
+    if (channelId)  rsParams.set('cid', channelId);
+    if (articleId)  rsParams.set('aid', articleId);
     const resultsPageBaseUrl = `${baseHref}results.html?${rsParams}`;
 
     // pageOptions shared by both relatedsearch blocks
@@ -144,6 +147,17 @@
       { container: 'relatedsearches1', relatedSearches: 5 },
       { container: 'relatedsearches2', relatedSearches: 5 }
     );
+
+    // Pixel: related search slots visible
+    pixelEvent('ViewContent', { content_name: document.title });
+    // Pixel: detect click on a related search term via window focus loss
+    var searchClicked = false;
+    window.addEventListener('blur', function onAfsBlur() {
+      if (searchClicked) return;
+      searchClicked = true;
+      window.removeEventListener('blur', onAfsBlur);
+      pixelEvent('Search');
+    });
   }
 
   // ── Table of Contents ─────────────────────────────────────────────────────
@@ -223,6 +237,33 @@
   function showError() {
     document.getElementById('article-loading').style.display = 'none';
     document.getElementById('article-error').style.display  = '';
+  }
+
+  // ── Pixel Tracking ───────────────────────────────────────────────────────
+  function initPixels(cfg) {
+    if (cfg.facebookPixelId) initFbPixel(cfg.facebookPixelId);
+    if (cfg.tiktokPixelId)   initTtPixel(cfg.tiktokPixelId);
+  }
+
+  function initFbPixel(id) {
+    if (window.fbq) return;
+    /* eslint-disable */
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    /* eslint-enable */
+    fbq('init', id);
+    fbq('track', 'PageView');
+  }
+
+  function initTtPixel(id) {
+    if (window.ttq) return;
+    /* eslint-disable */
+    !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=d.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=d.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load(id);ttq.page()}(window,document,'ttq');
+    /* eslint-enable */
+  }
+
+  function pixelEvent(name, data) {
+    try { if (window.fbq) fbq('track', name, data || {}); } catch(e) {}
+    try { if (window.ttq) ttq.track(name, data || {}); } catch(e) {}
   }
 
   // ── Category Colors ───────────────────────────────────────────────────────
