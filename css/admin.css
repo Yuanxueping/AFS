@@ -236,20 +236,19 @@ td {
   padding: .75rem .9rem;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--bg-alt); }
 
-.table-title { font-weight: 500; max-width: 280px; }
-.table-title small { display: block; color: var(--text-muted); font-size: .75rem; font-weight: 400; }
-.actions { display: flex; gap: .4rem; white-space: nowrap; justify-content: flex-end; }
+.table-title { font-weight: 500; }
+.table-title a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table-title small { display: block; color: var(--text-muted); font-size: .75rem; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.actions { display: flex; gap: .4rem; white-space: nowrap; justify-content: flex-end; align-items: center; }
 
 /* Fixed column widths to keep header and cells aligned */
 #articles-table { table-layout: fixed; width: 100%; }
-#articles-table th:nth-child(1), #articles-table td:nth-child(1) { width: 34%; }
-#articles-table th:nth-child(2), #articles-table td:nth-child(2) { width: 9%; }
+#articles-table th:nth-child(1), #articles-table td:nth-child(1) { width: 34%; overflow: hidden; }
+#articles-table th:nth-child(2), #articles-table td:nth-child(2) { width: 9%; overflow: hidden; }
 #articles-table th:nth-child(3), #articles-table td:nth-child(3) { width: 20%; }
 #articles-table th:nth-child(4), #articles-table td:nth-child(4) { width: 9%; white-space: nowrap; }
 #articles-table th:nth-child(5), #articles-table td:nth-child(5) { width: 8%; }
