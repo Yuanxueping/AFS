@@ -243,7 +243,7 @@ tr:hover td { background: var(--bg-alt); }
 .table-title { font-weight: 500; }
 .table-title a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .table-title small { display: block; color: var(--text-muted); font-size: .75rem; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.actions { display: flex; gap: .4rem; white-space: nowrap; justify-content: flex-end; align-items: center; }
+.actions { display: inline-flex; gap: .4rem; white-space: nowrap; vertical-align: middle; }
 
 /* Fixed column widths to keep header and cells aligned */
 #articles-table { table-layout: fixed; width: 100%; }
