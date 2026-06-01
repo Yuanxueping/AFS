@@ -243,15 +243,15 @@ tr:hover td { background: var(--bg-alt); }
 .table-title { font-weight: 500; }
 .table-title a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .table-title small { display: block; color: var(--text-muted); font-size: .75rem; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.actions { display: flex; gap: .4rem; align-items: center; justify-content: flex-end; }
-
-/* Column widths: let browser auto-layout, pin non-title columns to their content */
+/* Column widths */
 #articles-table { width: 100%; }
 #articles-table th:nth-child(2), #articles-table td:nth-child(2) { width: 110px; white-space: nowrap; }
 #articles-table th:nth-child(3), #articles-table td:nth-child(3) { width: 18%; }
 #articles-table th:nth-child(4), #articles-table td:nth-child(4) { width: 90px; white-space: nowrap; }
 #articles-table th:nth-child(5), #articles-table td:nth-child(5) { width: 80px; white-space: nowrap; }
-#articles-table th:nth-child(6), #articles-table td:nth-child(6) { width: 1%; white-space: nowrap; }
+/* Actions column: shrink-to-content, buttons sit inline so vertical-align:middle works */
+.td-actions { width: 1%; white-space: nowrap; text-align: right; vertical-align: middle; }
+.td-actions .btn { margin-left: .3rem; }
 
 /* ── Forms ───────────────────────────────────────────────────────────────── */
 .form-grid {
