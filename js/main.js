@@ -58,11 +58,13 @@
       const res = await fetch('/api/articles.php?action=config');
       if (!res.ok) return;
       const cfg = await res.json();
-      if (cfg.siteName) {
-        document.title = cfg.siteName;
-        document.querySelectorAll('#site-logo .logo-text, #footer-site-name')
-          .forEach(el => el && (el.textContent = cfg.siteName));
-      }
+      // Site name: config value if set, otherwise derive from domain
+      const name = cfg.siteName || nameFromDomain();
+      document.querySelectorAll('.logo-text, #footer-site-name')
+        .forEach(el => el && (el.textContent = name));
+      document.title = name;
+      const footer = document.getElementById('footer-text');
+      if (footer) footer.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
       if (cfg.siteDescription) {
         const el = document.getElementById('hero-subtitle');
         if (el) el.textContent = cfg.siteDescription;
@@ -71,6 +73,13 @@
       }
       if (cfg.articlesPerPage) state.limit = cfg.articlesPerPage;
     } catch { /* ignore */ }
+  }
+
+  function nameFromDomain() {
+    const h = window.location.hostname.replace(/^www\./, '');
+    const parts = h.split('.');
+    const base = parts.length >= 2 ? parts.slice(0, -1).join('') : h;
+    return base.charAt(0).toUpperCase() + base.slice(1);
   }
 
   // ── Load Articles ─────────────────────────────────────────────────────────

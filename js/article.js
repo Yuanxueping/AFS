@@ -32,14 +32,19 @@
       const res = await fetch('/api/articles.php?action=config');
       if (!res.ok) return;
       siteConfig = await res.json();
-      const name = siteConfig.siteName;
-      if (name) {
-        document.querySelectorAll('#site-logo .logo-text, #footer-site-name')
-          .forEach(el => el && (el.textContent = name));
-        const footer = document.getElementById('footer-text');
-        if (footer) footer.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
-      }
     } catch { /* ignore */ }
+    const name = siteConfig.siteName || nameFromDomain();
+    document.querySelectorAll('.logo-text, #footer-site-name')
+      .forEach(el => el && (el.textContent = name));
+    const footer = document.getElementById('footer-text');
+    if (footer) footer.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
+  }
+
+  function nameFromDomain() {
+    const h = window.location.hostname.replace(/^www\./, '');
+    const parts = h.split('.');
+    const base = parts.length >= 2 ? parts.slice(0, -1).join('') : h;
+    return base.charAt(0).toUpperCase() + base.slice(1);
   }
 
   // ── Render Article ────────────────────────────────────────────────────────
