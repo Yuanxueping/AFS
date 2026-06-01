@@ -173,9 +173,11 @@
         <td>${hasAfs
           ? '<span class="badge badge-green">已配置</span>'
           : '<span class="badge" style="background:var(--bg-alt);color:var(--text-muted);">未配置</span>'}</td>
-        <td class="actions">
-          <button class="btn btn-outline btn-sm" onclick="adminActions.editArticle('${esc(a.id)}')">编辑</button>
-          <button class="btn btn-danger btn-sm" onclick="adminActions.deleteArticle('${esc(a.id)}', '${esc(a.title)}')">删除</button>
+        <td>
+          <div class="actions">
+            <button class="btn btn-outline btn-sm" onclick="adminActions.editArticle('${esc(a.id)}')">编辑</button>
+            <button class="btn btn-danger btn-sm" onclick="adminActions.deleteArticle('${esc(a.id)}', '${esc(a.title)}')">删除</button>
+          </div>
         </td>
       </tr>`;
     }).join('');
