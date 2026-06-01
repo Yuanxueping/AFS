@@ -77,7 +77,7 @@
     };
     if (channelId) pageOptions.channel = channelId;
 
-    _googCsa('ads', pageOptions, { container: 'afscontainer1', number: 3, width: '100%' });
+    _googCsa('ads', pageOptions, { container: 'afscontainer1', number: 1, width: '100%' });
 
     // Pixel: detect ad click via window focus loss
     var adClicked = false;
