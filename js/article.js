@@ -98,7 +98,7 @@
     const fbPixelId     = urlParams.get('fbpx')  || afs.facebookPixelId || siteConfig.facebookPixelId     || '';
     const ttPixelId     = urlParams.get('ttpx')  || afs.tiktokPixelId   || siteConfig.tiktokPixelId       || '';
 
-    injectAndFireAfs(contentEl, pubId, styleId, channelId, a.id, fbPixelId, ttPixelId);
+    injectAndFireAfs(contentEl, pubId, styleId, channelId, a.id, fbPixelId, ttPixelId, a.title, urlParams);
 
     initPixels(fbPixelId, ttPixelId);
 
@@ -109,7 +109,7 @@
   }
 
   // ── Inject AFS Slots + Fire _googCsa ─────────────────────────────────────
-  function injectAndFireAfs(contentEl, pubId, styleId, channelId, articleId, fbPixelId, ttPixelId) {
+  function injectAndFireAfs(contentEl, pubId, styleId, channelId, articleId, fbPixelId, ttPixelId, articleTitle, urlParams) {
     const slot1 = document.getElementById('relatedsearches1');
     const slot2 = document.getElementById('relatedsearches2');
 
@@ -140,16 +140,25 @@
     // pageOptions shared by both relatedsearch blocks
     // ignoredPageParams: tell AFS to ignore tracking/attribution params
     // so all URL variants are treated as the same article page.
+    // terms: optional hint list from URL param (Google may or may not use it)
+    const terms = urlParams.get('terms') || undefined;
+
+    // referrerAdCreative: from URL ?rac=, or fall back to "title | Learn More"
+    const rac = urlParams.get('rac');
+    const referrerAdCreative = rac || (articleTitle ? `${articleTitle} | Learn More` : undefined);
+
     const pageOptions = {
       pubId,
       styleId,
       relatedSearchTargeting: 'content',
       resultsPageBaseUrl,
       resultsPageQueryParam: 'q',
-      ignoredPageParams: [...new URLSearchParams(location.search).keys()]
+      ignoredPageParams: [...urlParams.keys()]
         .filter(k => k !== 'id' && k !== 'slug').join(',') || undefined,
     };
-    if (channelId) pageOptions.channel = channelId;
+    if (channelId)           pageOptions.channel              = channelId;
+    if (terms)               pageOptions.terms                = terms;
+    if (referrerAdCreative)  pageOptions.referrerAdCreative   = referrerAdCreative;
 
     _googCsa('relatedsearch', pageOptions,
       { container: 'relatedsearches1', relatedSearches: 5 },
