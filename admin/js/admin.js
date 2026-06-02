@@ -418,23 +418,89 @@
     editor.addEventListener('paste', e => {
       e.preventDefault();
       let html = e.clipboardData.getData('text/html');
+      let cleaned;
       if (html) {
-        html = cleanPastedHtml(html);
+        cleaned = cleanPastedHtml(html);
       } else {
         const text = e.clipboardData.getData('text/plain');
-        html = text.split(/\n{2,}/).map(para =>
+        cleaned = text.split(/\n{2,}/).map(para =>
           `<p>${para.replace(/\n/g, '<br>').trim()}</p>`
-        ).filter(p => p !== '<p></p>').join('');
+        ).filter(p => p !== '<p></p>').join('') || `<p>${text}</p>`;
       }
-      document.execCommand('insertHTML', false, html);
+
+      // Insert via Range API — avoids execCommand re-wrapping in divs
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const tmp = document.createElement('div');
+        tmp.innerHTML = cleaned;
+        const frag = document.createDocumentFragment();
+        while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+        const lastNode = frag.lastChild;
+        range.insertNode(frag);
+        // Move cursor to end of inserted content
+        if (lastNode) {
+          range.setStartAfter(lastNode);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+
+      // Final normalization pass: ensure editor has no stray divs/spans
+      normalizeEditor(editor);
     });
 
     // Enter key: always insert <p> not <div>
     editor.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        document.execCommand('insertHTML', false, '</p><p><br></p>');
+        document.execCommand('insertParagraph', false, null);
+        // execCommand('insertParagraph') may still produce <div> in some browsers
+        normalizeEditor(editor);
       }
+    });
+  }
+
+  // After-paste normalization: walk editor children and fix remaining divs/spans
+  function normalizeEditor(editor) {
+    const BLOCK = new Set(['P','H1','H2','H3','H4','H5','H6','UL','OL',
+                           'BLOCKQUOTE','PRE','TABLE','FIGURE','HR']);
+
+    // Unwrap all spans
+    editor.querySelectorAll('span').forEach(span => {
+      span.replaceWith(...span.childNodes);
+    });
+
+    // Convert/unwrap divs (deepest first)
+    [...editor.querySelectorAll('div')].reverse().forEach(div => {
+      if (div === editor) return;
+      const hasBlock = [...div.children].some(c => BLOCK.has(c.tagName));
+      if (hasBlock) {
+        div.replaceWith(...div.childNodes);
+      } else {
+        const p = document.createElement('p');
+        p.innerHTML = div.innerHTML;
+        div.replaceWith(p);
+      }
+    });
+
+    // Wrap orphaned top-level text nodes in <p>
+    [...editor.childNodes].forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+        const p = document.createElement('p');
+        node.replaceWith(p);
+        p.appendChild(node);
+      }
+    });
+
+    // Strip all inline styles
+    editor.querySelectorAll('[style]').forEach(el => el.removeAttribute('style'));
+
+    // Remove empty paragraphs
+    editor.querySelectorAll('p').forEach(p => {
+      if (!p.textContent.trim() && !p.querySelector('img,br')) p.remove();
     });
   }
 
