@@ -74,7 +74,8 @@
       adType: 'text',
       resultsPageBaseUrl,
       resultsPageQueryParam: 'q',
-      ignoredPageParams: 'sid,cid,fbpx,ttpx,rac,utm_source,utm_medium,utm_campaign,utm_content,utm_term,utm_id,ref,source,click_id,gclid,fbclid,ttclid,msclkid,twclid,li_fat_id,mc_eid',
+      ignoredPageParams: [...new URLSearchParams(location.search).keys()]
+        .filter(k => k !== 'q').join(',') || undefined,
     };
     if (channelId) pageOptions.channel = channelId;
 
