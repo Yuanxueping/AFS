@@ -146,6 +146,7 @@
     // referrerAdCreative: from URL ?rac=, or fall back to "title | Learn More"
     const rac = urlParams.get('rac');
     const referrerAdCreative = rac || (articleTitle ? `${articleTitle} | Learn More` : undefined);
+    console.log('[AFS] rac param:', rac, '| referrerAdCreative:', referrerAdCreative);
 
     const pageOptions = {
       pubId,
