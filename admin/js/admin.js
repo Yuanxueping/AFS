@@ -468,14 +468,17 @@
     const BLOCK = new Set(['P','H1','H2','H3','H4','H5','H6','UL','OL',
                            'BLOCKQUOTE','PRE','TABLE','FIGURE','HR']);
 
-    // Unwrap all spans
+    // Unwrap all spans — but NOT inside embed blocks
     editor.querySelectorAll('span').forEach(span => {
+      if (span.closest('.html-embed-block')) return;
       span.replaceWith(...span.childNodes);
     });
 
-    // Convert/unwrap divs (deepest first)
+    // Convert/unwrap divs (deepest first) — skip embed blocks entirely
     [...editor.querySelectorAll('div')].reverse().forEach(div => {
       if (div === editor) return;
+      if (div.classList.contains('html-embed-block')) return;
+      if (div.closest('.html-embed-block')) return;
       const hasBlock = [...div.children].some(c => BLOCK.has(c.tagName));
       if (hasBlock) {
         div.replaceWith(...div.childNodes);
@@ -495,8 +498,11 @@
       }
     });
 
-    // Strip all inline styles
-    editor.querySelectorAll('[style]').forEach(el => el.removeAttribute('style'));
+    // Strip all inline styles — but NOT inside embed blocks
+    editor.querySelectorAll('[style]').forEach(el => {
+      if (el.closest('.html-embed-block')) return;
+      el.removeAttribute('style');
+    });
 
     // Remove empty paragraphs
     editor.querySelectorAll('p').forEach(p => {
