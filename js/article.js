@@ -13,19 +13,6 @@
 
     if (!id) { showError(); return; }
 
-    // Canonicalize URL: strip all tracking/AFS params, keep only id/slug.
-    // This ensures AFS, analytics and Google treat every variant as the same page.
-    const canonicalParams = new URLSearchParams();
-    if (params.get('id'))   canonicalParams.set('id',   params.get('id'));
-    if (params.get('slug')) canonicalParams.set('slug', params.get('slug'));
-    const canonicalUrl = location.pathname + '?' + canonicalParams.toString();
-    history.replaceState(null, '', canonicalUrl);
-
-    // Inject canonical link tag so crawlers and AFS agree on the URL
-    let canonEl = document.querySelector('link[rel="canonical"]');
-    if (!canonEl) { canonEl = document.createElement('link'); canonEl.rel = 'canonical'; document.head.appendChild(canonEl); }
-    canonEl.href = location.origin + canonicalUrl;
-
     try {
       const res = await fetch(`${API}?id=${encodeURIComponent(id)}`);
       if (!res.ok) { showError(); return; }
@@ -102,10 +89,7 @@
     const contentEl = document.getElementById('art-content');
     contentEl.innerHTML = a.content || '';
 
-    // Inject AFS slots into content, then fire _googCsa if configured
-    // Priority: URL param > article setting > site default
     // Priority for all IDs: URL param > article setting > site default
-    // Use the original params (captured before URL was canonicalized)
     const urlParams     = params;
     const afs           = a.afs || {};
     const pubId         = siteConfig.afsPublisherId || '';
@@ -154,12 +138,16 @@
     const resultsPageBaseUrl = `${baseHref}results.html?${rsParams}`;
 
     // pageOptions shared by both relatedsearch blocks
+    // ignoredQueryParameters: tell Google to treat URLs with these params
+    // as the same page, so AFS content targeting is consistent across
+    // all tracking/attribution URL variants.
     const pageOptions = {
       pubId,
       styleId,
       relatedSearchTargeting: 'content',
       resultsPageBaseUrl,
       resultsPageQueryParam: 'q',
+      ignoredQueryParameters: 'sid,cid,fbpx,ttpx,rac,utm_source,utm_medium,utm_campaign,utm_content,utm_term,utm_id,ref,source,click_id,gclid,fbclid,ttclid,msclkid,twclid,li_fat_id,mc_eid',
     };
     if (channelId) pageOptions.channel = channelId;
 
