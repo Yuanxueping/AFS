@@ -138,28 +138,22 @@
     const resultsPageBaseUrl = `${baseHref}results.html?${rsParams}`;
 
     // pageOptions shared by both relatedsearch blocks
+    // ignoredPageParams: tell AFS to ignore tracking/attribution params
+    // so all URL variants are treated as the same article page.
     const pageOptions = {
       pubId,
       styleId,
       relatedSearchTargeting: 'content',
       resultsPageBaseUrl,
       resultsPageQueryParam: 'q',
+      ignoredPageParams: 'sid,cid,fbpx,ttpx,rac,utm_source,utm_medium,utm_campaign,utm_content,utm_term,utm_id,ref,source,click_id,gclid,fbclid,ttclid,msclkid,twclid,li_fat_id,mc_eid',
     };
     if (channelId) pageOptions.channel = channelId;
-
-    // AFS uses window.location.href to identify the page.
-    // Temporarily replace URL with canonical form (id only) so all tracking
-    // param variants are treated as the same article, then immediately restore.
-    const originalHref = window.location.href;
-    const canonicalHref = location.origin + location.pathname + '?id=' + encodeURIComponent(articleId);
-    history.replaceState(null, '', canonicalHref);
 
     _googCsa('relatedsearch', pageOptions,
       { container: 'relatedsearches1', relatedSearches: 5 },
       { container: 'relatedsearches2', relatedSearches: 5 }
     );
-
-    history.replaceState(null, '', originalHref);
 
     // Pixel: related search slots visible
     pixelEvent('ViewContent', { content_name: document.title });
