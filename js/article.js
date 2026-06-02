@@ -8,16 +8,29 @@
   async function init() {
     await loadSiteConfig();
 
-    const params = new URLSearchParams(location.search);
-    const id     = params.get('id') || params.get('slug');
+    const params    = new URLSearchParams(location.search);
+    const id        = params.get('id') || params.get('slug');
 
     if (!id) { showError(); return; }
+
+    // Canonicalize URL: strip all tracking/AFS params, keep only id/slug.
+    // This ensures AFS, analytics and Google treat every variant as the same page.
+    const canonicalParams = new URLSearchParams();
+    if (params.get('id'))   canonicalParams.set('id',   params.get('id'));
+    if (params.get('slug')) canonicalParams.set('slug', params.get('slug'));
+    const canonicalUrl = location.pathname + '?' + canonicalParams.toString();
+    history.replaceState(null, '', canonicalUrl);
+
+    // Inject canonical link tag so crawlers and AFS agree on the URL
+    let canonEl = document.querySelector('link[rel="canonical"]');
+    if (!canonEl) { canonEl = document.createElement('link'); canonEl.rel = 'canonical'; document.head.appendChild(canonEl); }
+    canonEl.href = location.origin + canonicalUrl;
 
     try {
       const res = await fetch(`${API}?id=${encodeURIComponent(id)}`);
       if (!res.ok) { showError(); return; }
       const article = await res.json();
-      renderArticle(article);
+      renderArticle(article, params);
       loadRelated(article);
     } catch {
       showError();
@@ -48,7 +61,8 @@
   }
 
   // ── Render Article ────────────────────────────────────────────────────────
-  function renderArticle(a) {
+  function renderArticle(a, params) {
+    params = params || new URLSearchParams();
     const siteName = siteConfig.siteName || document.querySelector('#site-logo .logo-text')?.textContent || '';
     document.title = siteName ? `${a.title} — ${siteName}` : a.title;
 
@@ -91,7 +105,8 @@
     // Inject AFS slots into content, then fire _googCsa if configured
     // Priority: URL param > article setting > site default
     // Priority for all IDs: URL param > article setting > site default
-    const urlParams     = new URLSearchParams(location.search);
+    // Use the original params (captured before URL was canonicalized)
+    const urlParams     = params;
     const afs           = a.afs || {};
     const pubId         = siteConfig.afsPublisherId || '';
     const styleId       = urlParams.get('sid')   || afs.styleId         || siteConfig.defaultAfsStyleId   || '';
