@@ -421,6 +421,7 @@ textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
   overflow: hidden;
 }
 .toolbar-btn-embed { color: var(--primary) !important; font-weight: 600; }
+.toolbar-btn svg { display: block; }
 
 /* ── Modal ───────────────────────────────────────────────────────────────── */
 .modal-overlay {

@@ -498,10 +498,12 @@
       }
     });
 
-    // Strip all inline styles — but NOT inside embed blocks
+    // Strip all inline styles — but preserve text-align; skip embed blocks
     editor.querySelectorAll('[style]').forEach(el => {
       if (el.closest('.html-embed-block')) return;
+      const align = el.style.textAlign;
       el.removeAttribute('style');
+      if (align && align !== 'start' && align !== 'left') el.style.textAlign = align;
     });
 
     // Remove empty paragraphs
