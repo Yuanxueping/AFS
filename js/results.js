@@ -192,26 +192,22 @@
     }
   }
 
-  // ── Sidebar: More Terms ───────────────────────────────────────────────────
-  // Shows other search terms from the source article so users can keep exploring.
+  // ── Sidebar: More Terms (auto-generated from article) ────────────────────
+  // Extracts search terms from article tags, title keywords, and category.
   // Carries sid/cid forward so every click keeps the AFS attribution chain intact.
   function renderMoreTerms(article, styleId, channelId) {
-    const afs = article.afs || {};
-    const allTerms = [
-      ...(afs.relatedTermsGroup1 || []),
-      ...(afs.relatedTermsGroup2 || []),
-    ].filter(t => t && t.trim());
-
-    if (!allTerms.length) return;
-
     const widget = document.getElementById('more-terms-widget');
     const chips  = document.getElementById('more-terms-chips');
+
+    const terms = extractTerms(article);
+    if (!terms.length) return;
+
     widget.style.display = '';
 
     const baseParams = new URLSearchParams({ aid: article.id, sid: styleId });
     if (channelId) baseParams.set('cid', channelId);
 
-    chips.innerHTML = allTerms.map(term => `
+    chips.innerHTML = terms.map(term => `
       <a class="search-chip"
          href="results.html?q=${encodeURIComponent(term)}&${baseParams}"
          style="justify-content:flex-start;">
@@ -222,6 +218,56 @@
         </svg>
         ${esc(term)}
       </a>`).join('');
+  }
+
+  // Extract up to 8 search terms from article: tags → title phrases → category
+  function extractTerms(article) {
+    const seen = new Set();
+    const terms = [];
+
+    const add = (t) => {
+      const s = t.trim();
+      if (!s || seen.has(s.toLowerCase())) return;
+      seen.add(s.toLowerCase());
+      terms.push(s);
+    };
+
+    // 1. Tags (most precise — use as-is)
+    (article.tags || []).forEach(t => add(t));
+
+    // 2. Title keyword phrases (2–4 word windows, skip stop words)
+    if (article.title) {
+      const STOP = new Set([
+        'a','an','the','and','or','but','in','on','at','to','for','of','with',
+        'by','from','up','is','are','was','were','be','been','has','have','had',
+        'do','does','did','will','would','can','could','should','may','might',
+        'it','its','this','that','these','those','i','you','he','she','we','they',
+        'how','what','why','when','where','who','which','about','over','into',
+        'more','your','our','their','his','her','all','any','each','both','few',
+      ]);
+      const words = article.title
+        .replace(/[^a-zA-Z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length > 2 && !STOP.has(w.toLowerCase()));
+
+      // sliding window: 3-word phrases first, then 2-word
+      for (let len = 3; len >= 2; len--) {
+        for (let i = 0; i <= words.length - len; i++) {
+          add(words.slice(i, i + len).join(' '));
+          if (terms.length >= 6) break;
+        }
+        if (terms.length >= 6) break;
+      }
+      // fill with single keywords if still short
+      if (terms.length < 4) {
+        words.forEach(w => { if (terms.length < 6) add(w); });
+      }
+    }
+
+    // 3. Category as fallback term
+    if (article.category) add(article.category);
+
+    return terms.slice(0, 8);
   }
 
   // ── Pixel Tracking ───────────────────────────────────────────────────────
