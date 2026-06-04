@@ -246,11 +246,17 @@ function sanitizeArticle($data, $isNew = false) {
         'channelId' => '',
     ];
     $incoming = $data['afs'] ?? [];
+    $toTermArray = function($v) {
+        if (is_array($v)) return array_values(array_filter(array_map('trim', $v)));
+        return [];
+    };
     $afs = [
-        'styleId'         => strval($incoming['styleId']         ?? ''),
-        'channelId'       => strval($incoming['channelId']       ?? ''),
-        'facebookPixelId' => strval($incoming['facebookPixelId'] ?? ''),
-        'tiktokPixelId'   => strval($incoming['tiktokPixelId']   ?? ''),
+        'styleId'            => strval($incoming['styleId']            ?? ''),
+        'channelId'          => strval($incoming['channelId']          ?? ''),
+        'facebookPixelId'    => strval($incoming['facebookPixelId']    ?? ''),
+        'tiktokPixelId'      => strval($incoming['tiktokPixelId']      ?? ''),
+        'relatedTermsGroup1' => $toTermArray($incoming['relatedTermsGroup1'] ?? []),
+        'relatedTermsGroup2' => $toTermArray($incoming['relatedTermsGroup2'] ?? []),
     ];
 
     return [
