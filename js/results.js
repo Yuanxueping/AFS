@@ -38,7 +38,10 @@
       } catch { /* ignore */ }
     }
 
-    await loadRelatedArticles(sourceArticle, query);
+    await Promise.all([
+      loadRelatedArticles(sourceArticle, query),
+      loadCategories(),
+    ]);
 
     if (sourceArticle) {
       renderMoreTerms(sourceArticle, styleId, channelId);
@@ -162,6 +165,31 @@
           </div>
         </div>
       </div>`).join('');
+  }
+
+  // ── Sidebar: Categories ──────────────────────────────────────────────────
+  async function loadCategories() {
+    const el = document.getElementById('categories-chips');
+    if (!el) return;
+    try {
+      const res  = await fetch(`${API}?page=1&limit=1`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const cats = data.categories || {};
+      const entries = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+      if (!entries.length) {
+        document.getElementById('categories-widget').style.display = 'none';
+        return;
+      }
+      el.innerHTML = entries.map(([name, count]) =>
+        `<a class="search-chip" href="index.html?cat=${encodeURIComponent(name)}"
+            style="justify-content:flex-start;">
+           ${esc(name)}<span style="margin-left:.3rem;opacity:.55;font-size:.75rem;">(${count})</span>
+         </a>`
+      ).join('');
+    } catch {
+      document.getElementById('categories-widget').style.display = 'none';
+    }
   }
 
   // ── Sidebar: More Terms ───────────────────────────────────────────────────
