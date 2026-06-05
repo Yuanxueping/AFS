@@ -84,13 +84,15 @@
 
     _googCsa('ads', pageOptions, { container: 'afscontainer1', number: 1, width: '100%' });
 
-    // Pixel: fire Lead only when blur happens while mouse is over the ad container
+    // Pixel: fire Lead only when blur happens with mouse over the ad container
     var adClicked = false;
-    var mouseOverAd = false;
-    adSection.addEventListener('mouseenter', function() { mouseOverAd = true; });
-    adSection.addEventListener('mouseleave', function() { mouseOverAd = false; });
+    var lastX = -1, lastY = -1;
+    document.addEventListener('mousemove', function(e) { lastX = e.clientX; lastY = e.clientY; });
     window.addEventListener('blur', function onAdBlur() {
-      if (adClicked || !mouseOverAd) return;
+      if (adClicked) return;
+      var r = adSection.getBoundingClientRect();
+      var over = lastX >= r.left && lastX <= r.right && lastY >= r.top && lastY <= r.bottom;
+      if (!over) return;
       adClicked = true;
       window.removeEventListener('blur', onAdBlur);
       pixelEvent('Lead', { search_string: query });

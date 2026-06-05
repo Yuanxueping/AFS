@@ -169,15 +169,17 @@
     // Pixel: related search slots visible
     pixelEvent('ViewContent', { content_name: document.title });
 
-    // Pixel: fire Search only when blur happens while mouse is over an AFS slot
+    // Pixel: fire Search only when blur happens with mouse over an AFS slot
     var searchClicked = false;
-    var mouseOverAfs = false;
-    [slot1, slot2].forEach(function(slot) {
-      slot.addEventListener('mouseenter', function() { mouseOverAfs = true; });
-      slot.addEventListener('mouseleave', function() { mouseOverAfs = false; });
-    });
+    var lastX = -1, lastY = -1;
+    document.addEventListener('mousemove', function(e) { lastX = e.clientX; lastY = e.clientY; });
     window.addEventListener('blur', function onAfsBlur() {
-      if (searchClicked || !mouseOverAfs) return;
+      if (searchClicked) return;
+      var over = [slot1, slot2].some(function(slot) {
+        var r = slot.getBoundingClientRect();
+        return lastX >= r.left && lastX <= r.right && lastY >= r.top && lastY <= r.bottom;
+      });
+      if (!over) return;
       searchClicked = true;
       window.removeEventListener('blur', onAfsBlur);
       pixelEvent('Search');
