@@ -168,10 +168,16 @@
 
     // Pixel: related search slots visible
     pixelEvent('ViewContent', { content_name: document.title });
-    // Pixel: detect click on a related search term via window focus loss
+
+    // Pixel: fire Search only when blur happens while mouse is over an AFS slot
     var searchClicked = false;
+    var mouseOverAfs = false;
+    [slot1, slot2].forEach(function(slot) {
+      slot.addEventListener('mouseenter', function() { mouseOverAfs = true; });
+      slot.addEventListener('mouseleave', function() { mouseOverAfs = false; });
+    });
     window.addEventListener('blur', function onAfsBlur() {
-      if (searchClicked) return;
+      if (searchClicked || !mouseOverAfs) return;
       searchClicked = true;
       window.removeEventListener('blur', onAfsBlur);
       pixelEvent('Search');

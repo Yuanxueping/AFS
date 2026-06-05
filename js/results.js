@@ -84,10 +84,13 @@
 
     _googCsa('ads', pageOptions, { container: 'afscontainer1', number: 1, width: '100%' });
 
-    // Pixel: detect ad click via window focus loss
+    // Pixel: fire Lead only when blur happens while mouse is over the ad container
     var adClicked = false;
+    var mouseOverAd = false;
+    adSection.addEventListener('mouseenter', function() { mouseOverAd = true; });
+    adSection.addEventListener('mouseleave', function() { mouseOverAd = false; });
     window.addEventListener('blur', function onAdBlur() {
-      if (adClicked) return;
+      if (adClicked || !mouseOverAd) return;
       adClicked = true;
       window.removeEventListener('blur', onAdBlur);
       pixelEvent('Lead', { search_string: query });
