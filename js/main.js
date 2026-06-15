@@ -72,7 +72,21 @@
         if (fd) fd.textContent = cfg.siteDescription;
       }
       if (cfg.articlesPerPage) state.limit = cfg.articlesPerPage;
+      if (cfg.googleAnalyticsId) injectGA(cfg.googleAnalyticsId);
     } catch { /* ignore */ }
+  }
+
+  function injectGA(id) {
+    if (document.getElementById('ga-script')) return;
+    const s = document.createElement('script');
+    s.id = 'ga-script';
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ window.dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', id);
   }
 
   function nameFromDomain() {

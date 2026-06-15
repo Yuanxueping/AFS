@@ -111,7 +111,21 @@
       .forEach(el => el && (el.textContent = name));
     const footer = document.getElementById('footer-text');
     if (footer) footer.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
+    if (cfg.googleAnalyticsId) injectGA(cfg.googleAnalyticsId);
     return cfg;
+  }
+
+  function injectGA(id) {
+    if (document.getElementById('ga-script')) return;
+    const s = document.createElement('script');
+    s.id = 'ga-script';
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ window.dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', id);
   }
 
   function nameFromDomain() {

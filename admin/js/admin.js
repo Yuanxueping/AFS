@@ -751,6 +751,7 @@
     document.getElementById('s-afs-channel').value = res.defaultAfsChannelId || '';
     document.getElementById('s-fb-pixel').value    = res.facebookPixelId    || '';
     document.getElementById('s-tt-pixel').value    = res.tiktokPixelId      || '';
+    document.getElementById('s-ga-id').value       = res.googleAnalyticsId  || '';
   }
 
   async function saveSettings() {
@@ -773,6 +774,7 @@
       defaultAfsChannelId: document.getElementById('s-afs-channel').value.trim(),
       facebookPixelId:     document.getElementById('s-fb-pixel').value.trim(),
       tiktokPixelId:       document.getElementById('s-tt-pixel').value.trim(),
+      googleAnalyticsId:   document.getElementById('s-ga-id').value.trim(),
     };
     if (newPwd) payload.newPassword = newPwd;
 
