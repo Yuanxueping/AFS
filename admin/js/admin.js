@@ -251,8 +251,13 @@
       afs: {
         styleId:           document.getElementById('f-afs-style').value.trim(),
         channelId:         document.getElementById('f-afs-channel').value.trim(),
-        facebookPixelId:   document.getElementById('f-fb-pixel').value.trim(),
-        tiktokPixelId:     document.getElementById('f-tt-pixel').value.trim(),
+        facebookPixelId:          document.getElementById('f-fb-pixel').value.trim(),
+        tiktokPixelId:            document.getElementById('f-tt-pixel').value.trim(),
+        googleAdsId:              document.getElementById('f-gads-id').value.trim(),
+        googleAdsLabelPageView:   document.getElementById('f-gads-pageview').value.trim(),
+        googleAdsLabelViewContent:document.getElementById('f-gads-viewcontent').value.trim(),
+        googleAdsLabelSearch:     document.getElementById('f-gads-search').value.trim(),
+        googleAdsLabelLead:       document.getElementById('f-gads-lead').value.trim(),
         relatedTermsGroup1: document.getElementById('f-terms-1').value.trim()
           ? document.getElementById('f-terms-1').value.split(',').map(t => t.trim()).filter(Boolean)
           : [],
@@ -311,8 +316,13 @@
     const afs = a.afs || {};
     document.getElementById('f-afs-style').value   = afs.styleId         || '';
     document.getElementById('f-afs-channel').value = afs.channelId       || '';
-    document.getElementById('f-fb-pixel').value    = afs.facebookPixelId || '';
-    document.getElementById('f-tt-pixel').value    = afs.tiktokPixelId   || '';
+    document.getElementById('f-fb-pixel').value          = afs.facebookPixelId          || '';
+    document.getElementById('f-tt-pixel').value          = afs.tiktokPixelId            || '';
+    document.getElementById('f-gads-id').value           = afs.googleAdsId              || '';
+    document.getElementById('f-gads-pageview').value     = afs.googleAdsLabelPageView   || '';
+    document.getElementById('f-gads-viewcontent').value  = afs.googleAdsLabelViewContent|| '';
+    document.getElementById('f-gads-search').value       = afs.googleAdsLabelSearch     || '';
+    document.getElementById('f-gads-lead').value         = afs.googleAdsLabelLead       || '';
     document.getElementById('f-terms-1').value     = (afs.relatedTermsGroup1 || []).join(', ');
     document.getElementById('f-terms-2').value     = (afs.relatedTermsGroup2 || []).join(', ');
 

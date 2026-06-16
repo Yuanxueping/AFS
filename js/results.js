@@ -20,12 +20,11 @@
     // Load site config for pubId and site name
     const cfg = await loadSiteConfig();
     const pubId     = cfg.afsPublisherId || '';
-    const fbPixelId = params.get('fbpx') || cfg.facebookPixelId || '';
-    const ttPixelId = params.get('ttpx') || cfg.tiktokPixelId   || '';
-
-    const gAdsId         = cfg.googleAdsId               || '';
-    const gLabelPageView = cfg.googleAdsLabelPageView    || '';
-    const gLabelLead     = cfg.googleAdsLabelLead        || '';
+    const fbPixelId      = params.get('fbpx') || cfg.facebookPixelId          || '';
+    const ttPixelId      = params.get('ttpx') || cfg.tiktokPixelId            || '';
+    const gAdsId         = params.get('gads') || cfg.googleAdsId              || '';
+    const gLabelPageView = params.get('glpv') || cfg.googleAdsLabelPageView   || '';
+    const gLabelLead     = params.get('glld') || cfg.googleAdsLabelLead       || '';
 
     initPixels(fbPixelId, ttPixelId);
     if (gAdsId) initGoogleAds(gAdsId);

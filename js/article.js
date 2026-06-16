@@ -109,15 +109,15 @@
     const pubId         = siteConfig.afsPublisherId || '';
     const styleId       = urlParams.get('sid')   || afs.styleId         || siteConfig.defaultAfsStyleId   || '';
     const channelId     = urlParams.get('cid')   || afs.channelId       || siteConfig.defaultAfsChannelId || '';
-    const fbPixelId     = urlParams.get('fbpx')  || afs.facebookPixelId || siteConfig.facebookPixelId     || '';
-    const ttPixelId     = urlParams.get('ttpx')  || afs.tiktokPixelId   || siteConfig.tiktokPixelId       || '';
+    const fbPixelId       = urlParams.get('fbpx')   || afs.facebookPixelId          || siteConfig.facebookPixelId          || '';
+    const ttPixelId       = urlParams.get('ttpx')   || afs.tiktokPixelId            || siteConfig.tiktokPixelId            || '';
+    const gAdsId          = urlParams.get('gads')   || afs.googleAdsId              || siteConfig.googleAdsId              || '';
+    const gLabelPageView  = urlParams.get('glpv')   || afs.googleAdsLabelPageView   || siteConfig.googleAdsLabelPageView   || '';
+    const gLabelView      = urlParams.get('glvc')   || afs.googleAdsLabelViewContent|| siteConfig.googleAdsLabelViewContent|| '';
+    const gLabelSearch    = urlParams.get('glsr')   || afs.googleAdsLabelSearch     || siteConfig.googleAdsLabelSearch     || '';
+    const gLabelLead      = urlParams.get('glld')   || afs.googleAdsLabelLead       || siteConfig.googleAdsLabelLead       || '';
 
-    const gAdsId          = siteConfig.googleAdsId               || '';
-    const gLabelPageView  = siteConfig.googleAdsLabelPageView    || '';
-    const gLabelView      = siteConfig.googleAdsLabelViewContent || '';
-    const gLabelSearch    = siteConfig.googleAdsLabelSearch      || '';
-
-    injectAndFireAfs(contentEl, pubId, styleId, channelId, a.id, fbPixelId, ttPixelId, a.title, urlParams, gAdsId, gLabelView, gLabelSearch);
+    injectAndFireAfs(contentEl, pubId, styleId, channelId, a.id, fbPixelId, ttPixelId, a.title, urlParams, gAdsId, gLabelView, gLabelSearch, gLabelLead);
 
     initPixels(fbPixelId, ttPixelId);
     if (gAdsId) initGoogleAds(gAdsId);
@@ -130,7 +130,7 @@
   }
 
   // ── Inject AFS Slots + Fire _googCsa ─────────────────────────────────────
-  function injectAndFireAfs(contentEl, pubId, styleId, channelId, articleId, fbPixelId, ttPixelId, articleTitle, urlParams, gAdsId, gLabelView, gLabelSearch) {
+  function injectAndFireAfs(contentEl, pubId, styleId, channelId, articleId, fbPixelId, ttPixelId, articleTitle, urlParams, gAdsId, gLabelView, gLabelSearch, gLabelLead) {
     const slot1 = document.getElementById('relatedsearches1');
     const slot2 = document.getElementById('relatedsearches2');
 
@@ -156,6 +156,8 @@
     if (articleId)  rsParams.set('aid', articleId);
     if (fbPixelId)  rsParams.set('fbpx', fbPixelId);
     if (ttPixelId)  rsParams.set('ttpx', ttPixelId);
+    if (gAdsId)     rsParams.set('gads', gAdsId);
+    if (gLabelLead) rsParams.set('glld', gLabelLead);
     const resultsPageBaseUrl = `${baseHref}results.html?${rsParams}`;
 
     // pageOptions shared by both relatedsearch blocks
