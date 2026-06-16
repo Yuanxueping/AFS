@@ -308,6 +308,10 @@
     document.getElementById('f-category').value      = a.category || '';
     document.getElementById('f-tags').value          = (a.tags || []).join(', ');
     document.getElementById('f-cover').value         = a.coverImage || '';
+    const _prev = document.getElementById('cover-preview');
+    const _pimg = document.getElementById('cover-preview-img');
+    if (a.coverImage) { _pimg.src = a.coverImage; _prev.style.display = ''; }
+    else { _prev.style.display = 'none'; }
     document.getElementById('f-slug').value          = a.slug || '';
     document.getElementById('f-excerpt').value       = a.excerpt || '';
     document.getElementById('content-editor').innerHTML = a.content || '';
@@ -409,12 +413,55 @@
           const url = prompt('输入链接 URL：', 'https://');
           if (url) document.execCommand('createLink', false, url);
         } else if (cmd === 'insertImage') {
-          const url = prompt('输入图片 URL：', 'https://');
-          if (url) document.execCommand('insertImage', false, url);
+          saveSelection();
+          document.getElementById('editor-img-input').click();
         } else {
           document.execCommand(cmd, false, null);
         }
       });
+    });
+
+    // Editor image upload
+    const editorImgInput = document.getElementById('editor-img-input');
+    editorImgInput.addEventListener('change', async () => {
+      const file = editorImgInput.files[0];
+      editorImgInput.value = '';
+      if (!file) return;
+      showOverlay();
+      const url = await uploadImage(file);
+      hideOverlay();
+      if (!url) return;
+      restoreSelection();
+      editor.focus();
+      document.execCommand('insertImage', false, url);
+    });
+
+    // Cover image upload
+    const coverUploadBtn   = document.getElementById('cover-upload-btn');
+    const coverUploadInput = document.getElementById('cover-upload-input');
+    const coverPreview     = document.getElementById('cover-preview');
+    const coverPreviewImg  = document.getElementById('cover-preview-img');
+    const coverInput       = document.getElementById('f-cover');
+
+    coverUploadBtn.addEventListener('click', () => coverUploadInput.click());
+    coverUploadInput.addEventListener('change', async () => {
+      const file = coverUploadInput.files[0];
+      coverUploadInput.value = '';
+      if (!file) return;
+      showOverlay();
+      const url = await uploadImage(file);
+      hideOverlay();
+      if (!url) return;
+      coverInput.value = url;
+      coverPreviewImg.src = url;
+      coverPreview.style.display = '';
+    });
+
+    // Show preview if cover URL already filled
+    coverInput.addEventListener('input', () => {
+      const v = coverInput.value.trim();
+      if (v) { coverPreviewImg.src = v; coverPreview.style.display = ''; }
+      else   { coverPreview.style.display = 'none'; }
     });
 
     // Tab key in HTML textarea
@@ -834,6 +881,21 @@
     document.getElementById('confirm-modal').classList.remove('show');
     confirmCallback = null;
   });
+
+  // ── Image Upload ──────────────────────────────────────────────────────────
+  async function uploadImage(file) {
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await fetch('/api/upload.php', { method: 'POST', body: form });
+      const data = await res.json();
+      if (data.url) return data.url;
+      alert('上传失败：' + (data.error || '未知错误'));
+    } catch (e) {
+      alert('上传失败：' + e.message);
+    }
+    return null;
+  }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function showOverlay()  { document.getElementById('loading-overlay').classList.add('show'); }
