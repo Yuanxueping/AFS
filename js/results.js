@@ -23,11 +23,17 @@
     const fbPixelId = params.get('fbpx') || cfg.facebookPixelId || '';
     const ttPixelId = params.get('ttpx') || cfg.tiktokPixelId   || '';
 
+    const gAdsId         = cfg.googleAdsId               || '';
+    const gLabelPageView = cfg.googleAdsLabelPageView    || '';
+    const gLabelLead     = cfg.googleAdsLabelLead        || '';
+
     initPixels(fbPixelId, ttPixelId);
+    if (gAdsId) initGoogleAds(gAdsId);
+    gAdsConversion(gAdsId, gLabelPageView);
     if (query) pixelEvent('Search', { search_string: query });
 
     // Fire AFS ad immediately (don't wait for article fetch)
-    fireAfsAd(pubId, styleId, channelId, query);
+    fireAfsAd(pubId, styleId, channelId, query, gAdsId, gLabelLead);
 
     // Fetch source article for related articles list + sidebar terms
     let sourceArticle = null;
@@ -54,7 +60,7 @@
   }
 
   // ── Fire _googCsa AFS Ad ──────────────────────────────────────────────────
-  function fireAfsAd(pubId, styleId, channelId, query) {
+  function fireAfsAd(pubId, styleId, channelId, query, gAdsId, gLabelLead) {
     const adSection = document.getElementById('results-ad-section');
 
     if (!pubId || !styleId || !query) {
@@ -96,6 +102,7 @@
       adClicked = true;
       window.removeEventListener('blur', onAdBlur);
       pixelEvent('Lead', { search_string: query });
+      gAdsConversion(gAdsId, gLabelLead);
     });
   }
 
@@ -290,6 +297,24 @@
   }
 
   // ── Pixel Tracking ───────────────────────────────────────────────────────
+  function initGoogleAds(id) {
+    if (document.getElementById('gads-script')) return;
+    const s = document.createElement('script');
+    s.id = 'gads-script';
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    if (!window.gtag) window.gtag = function(){ window.dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', id);
+  }
+
+  function gAdsConversion(adsId, label) {
+    if (!adsId || !label) return;
+    try { gtag('event', 'conversion', { send_to: `${adsId}/${label}` }); } catch(e) {}
+  }
+
   function initPixels(fbId, ttId) {
     if (fbId) initFbPixel(fbId);
     if (ttId) initTtPixel(ttId);

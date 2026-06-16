@@ -112,9 +112,16 @@
     const fbPixelId     = urlParams.get('fbpx')  || afs.facebookPixelId || siteConfig.facebookPixelId     || '';
     const ttPixelId     = urlParams.get('ttpx')  || afs.tiktokPixelId   || siteConfig.tiktokPixelId       || '';
 
-    injectAndFireAfs(contentEl, pubId, styleId, channelId, a.id, fbPixelId, ttPixelId, a.title, urlParams);
+    const gAdsId          = siteConfig.googleAdsId               || '';
+    const gLabelPageView  = siteConfig.googleAdsLabelPageView    || '';
+    const gLabelView      = siteConfig.googleAdsLabelViewContent || '';
+    const gLabelSearch    = siteConfig.googleAdsLabelSearch      || '';
+
+    injectAndFireAfs(contentEl, pubId, styleId, channelId, a.id, fbPixelId, ttPixelId, a.title, urlParams, gAdsId, gLabelView, gLabelSearch);
 
     initPixels(fbPixelId, ttPixelId);
+    if (gAdsId) initGoogleAds(gAdsId);
+    gAdsConversion(gAdsId, gLabelPageView);
 
     buildToc();
 
@@ -123,7 +130,7 @@
   }
 
   // ── Inject AFS Slots + Fire _googCsa ─────────────────────────────────────
-  function injectAndFireAfs(contentEl, pubId, styleId, channelId, articleId, fbPixelId, ttPixelId, articleTitle, urlParams) {
+  function injectAndFireAfs(contentEl, pubId, styleId, channelId, articleId, fbPixelId, ttPixelId, articleTitle, urlParams, gAdsId, gLabelView, gLabelSearch) {
     const slot1 = document.getElementById('relatedsearches1');
     const slot2 = document.getElementById('relatedsearches2');
 
@@ -182,6 +189,7 @@
 
     // Pixel: related search slots visible
     pixelEvent('ViewContent', { content_name: document.title });
+    gAdsConversion(gAdsId, gLabelView);
 
     // Pixel: fire Search only when blur happens with mouse over an AFS slot
     var searchClicked = false;
@@ -197,6 +205,7 @@
       searchClicked = true;
       window.removeEventListener('blur', onAfsBlur);
       pixelEvent('Search');
+      gAdsConversion(gAdsId, gLabelSearch);
     });
   }
 
@@ -280,6 +289,24 @@
   }
 
   // ── Pixel Tracking ───────────────────────────────────────────────────────
+  function initGoogleAds(id) {
+    if (document.getElementById('gads-script')) return;
+    const s = document.createElement('script');
+    s.id = 'gads-script';
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    if (!window.gtag) window.gtag = function(){ window.dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', id);
+  }
+
+  function gAdsConversion(adsId, label) {
+    if (!adsId || !label) return;
+    try { gtag('event', 'conversion', { send_to: `${adsId}/${label}` }); } catch(e) {}
+  }
+
   function initPixels(fbId, ttId) {
     if (fbId) initFbPixel(fbId);
     if (ttId) initTtPixel(ttId);

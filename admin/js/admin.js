@@ -752,6 +752,11 @@
     document.getElementById('s-fb-pixel').value    = res.facebookPixelId    || '';
     document.getElementById('s-tt-pixel').value    = res.tiktokPixelId      || '';
     document.getElementById('s-ga-id').value       = res.googleAnalyticsId  || '';
+    document.getElementById('s-gads-id').value          = res.googleAdsId               || '';
+    document.getElementById('s-gads-pageview').value    = res.googleAdsLabelPageView    || '';
+    document.getElementById('s-gads-viewcontent').value = res.googleAdsLabelViewContent || '';
+    document.getElementById('s-gads-search').value      = res.googleAdsLabelSearch      || '';
+    document.getElementById('s-gads-lead').value        = res.googleAdsLabelLead        || '';
   }
 
   async function saveSettings() {
@@ -774,7 +779,12 @@
       defaultAfsChannelId: document.getElementById('s-afs-channel').value.trim(),
       facebookPixelId:     document.getElementById('s-fb-pixel').value.trim(),
       tiktokPixelId:       document.getElementById('s-tt-pixel').value.trim(),
-      googleAnalyticsId:   document.getElementById('s-ga-id').value.trim(),
+      googleAnalyticsId:          document.getElementById('s-ga-id').value.trim(),
+      googleAdsId:                document.getElementById('s-gads-id').value.trim(),
+      googleAdsLabelPageView:     document.getElementById('s-gads-pageview').value.trim(),
+      googleAdsLabelViewContent:  document.getElementById('s-gads-viewcontent').value.trim(),
+      googleAdsLabelSearch:       document.getElementById('s-gads-search').value.trim(),
+      googleAdsLabelLead:         document.getElementById('s-gads-lead').value.trim(),
     };
     if (newPwd) payload.newPassword = newPwd;
 
